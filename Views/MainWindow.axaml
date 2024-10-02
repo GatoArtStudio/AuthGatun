@@ -38,7 +38,7 @@
             </ItemsControl>
         </StackPanel>
 
-        <DockPanel Height="40" Background="Black" x:Name="DockButtonsDown">
+        <DockPanel Height="40" Background="#36000011" x:Name="DockButtonsDown">
             <Button Classes="Dock" >Home</Button>
             <Button Classes="Dock" >Keys</Button>
             <Button Classes="Dock" >Setting</Button>

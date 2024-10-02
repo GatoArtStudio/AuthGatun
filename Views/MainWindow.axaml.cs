@@ -2,7 +2,6 @@ using Avalonia.Controls;
 using AuthGatun.ViewModels;
 using Avalonia.Interactivity;
 using App.Helpers;
-using System;
 
 namespace AuthGatun.Views;
 
@@ -27,7 +26,7 @@ public partial class MainWindow : Window
             string serviceName = button.Content?.ToString() ?? string.Empty;
             string secretKey = button.Tag?.ToString() ?? string.Empty;
             string code = totpManager.GetTotpCode(secretKey);
-            notify.SendNotify(this, "Codigo copiado con exito.", "Copy Key");
+            notify.SendNotify(this, "Codigo copiado con exito.", "Codigo");
             await clipboard.SetTextAsync(code);
         }
     }

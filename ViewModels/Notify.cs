@@ -1,4 +1,3 @@
-using System;
 using Avalonia.Controls.Notifications;
 
 namespace AuthGatun.ViewModels;

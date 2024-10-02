@@ -1,16 +1,5 @@
-﻿using Avalonia.Controls;
-using System.Data.SQLite;
+﻿using System.Data.SQLite;
 using System.Collections.ObjectModel;
-using System.Data.Common;
-using System.Security.Authentication.ExtendedProtection;
-using System;
-using System.Windows;
-using Avalonia;
-using Avalonia.Input.Platform;
-using Avalonia.Input;
-using Avalonia.Interactivity;
-using App.Helpers;
-using System.Threading.Tasks;
 
 namespace AuthGatun.ViewModels;
 public partial class MainWindowViewModel : ViewModelBase
