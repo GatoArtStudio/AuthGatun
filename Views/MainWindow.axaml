@@ -1,0 +1,47 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:AuthGatun.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
+        Width="400"
+        Height="600"
+        x:Class="AuthGatun.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="AuthGatun"
+        RequestedThemeVariant="Dark">
+
+    <Window.Styles>
+        <Style Selector="Button.keys">
+            <Setter Property="Width" Value="360" />
+            <Setter Property="Margin" Value="0 10 0 0" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="CornerRadius" Value="10" />
+        </Style>
+        <Style Selector="Button.Dock">
+            <Setter Property="Width" Value="100" />
+            <Setter Property="Margin" Value="25 0 0 0" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="CornerRadius" Value="10" />
+        </Style>
+    </Window.Styles>
+
+    <StackPanel>
+        <StackPanel x:Name="LayoutUp">
+            <ItemsControl Height="550" ItemsSource='{Binding ServiceKeys}'>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Button Classes="keys" Content='{Binding ServiceName}' HorizontalAlignment='Center' Click='CopyToClipboard' Tag='{Binding SecretKey}'/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+
+        <DockPanel Height="40" Background="Black" x:Name="DockButtonsDown">
+            <Button Classes="Dock" >Home</Button>
+            <Button Classes="Dock" >Keys</Button>
+            <Button Classes="Dock" >Setting</Button>
+        </DockPanel>
+    </StackPanel>
+</Window>
