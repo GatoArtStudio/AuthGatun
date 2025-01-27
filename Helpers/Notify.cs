@@ -1,6 +1,6 @@
 using Avalonia.Controls.Notifications;
 
-namespace AuthGatun.ViewModels;
+namespace AuthGatun.Helpers;
 
 
 public class Notify

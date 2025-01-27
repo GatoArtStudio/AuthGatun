@@ -8,7 +8,7 @@
         Height="600"
         x:Class="AuthGatun.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
-        Icon="/Assets/avalonia-logo.ico"
+        Icon="/Assets/logo.ico"
         Title="AuthGatun"
         RequestedThemeVariant="Dark">
 
@@ -26,22 +26,13 @@
             <Setter Property="CornerRadius" Value="10" />
         </Style>
     </Window.Styles>
-
-    <StackPanel>
-        <StackPanel x:Name="LayoutUp">
-            <ItemsControl Height="550" ItemsSource='{Binding ServiceKeys}'>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Button Classes="keys" Content='{Binding ServiceName}' HorizontalAlignment='Center' Click='CopyToClipboard' Tag='{Binding SecretKey}'/>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </StackPanel>
-
-        <DockPanel Height="40" Background="#36000011" x:Name="DockButtonsDown">
-            <Button Classes="Dock" >Home</Button>
-            <Button Classes="Dock" >Keys</Button>
-            <Button Classes="Dock" >Setting</Button>
+    
+    <Grid RowDefinitions="*,Auto">
+        <ContentControl Content="{Binding CurrentView}" Grid.Row="0"></ContentControl>
+        <DockPanel Height="40" Background="#36000011" x:Name="DockButtonsDown" Grid.Row="1">
+            <Button Classes="Dock" Command="{Binding ShowHomeViewCommand}">Home</Button>
+            <Button Classes="Dock" Command="{Binding ShowKeysViewCommand}">Keys</Button>
+            <Button Classes="Dock" Command="{Binding ShowSettingsViewCommand}">Settings</Button>
         </DockPanel>
-    </StackPanel>
+    </Grid>
 </Window>

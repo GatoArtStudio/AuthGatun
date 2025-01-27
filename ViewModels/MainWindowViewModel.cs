@@ -1,46 +1,62 @@
-﻿using System.Data.SQLite;
-using System.Collections.ObjectModel;
+﻿using System;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using System.Windows.Input;
+using AuthGatun.Views;
+using Avalonia.Controls;
 
 namespace AuthGatun.ViewModels;
-public partial class MainWindowViewModel : ViewModelBase
+public partial class MainWindowViewModel : INotifyPropertyChanged
 {
-    public ObservableCollection<ServiceKey> ServiceKeys { get; set; }
-
-    public MainWindowViewModel()
+    private UserControl _currentView;
+    private MainWindow _mainWindow;
+    
+    public MainWindowViewModel(MainWindow mainWindow)
     {
-        ServiceKeys = new ObservableCollection<ServiceKey>();
-        LoadDataFromDatabase();
+        _mainWindow = mainWindow;
+        ShowHomeViewCommand = new RelayCommand(ShowHomeView);
+        ShowKeysViewCommand = new RelayCommand(ShowKeysView);
+        ShowSettingsViewCommand = new RelayCommand(ShowSettingsView);
+        ShowHomeView();
     }
-    private void LoadDataFromDatabase()
+    // Seteamos la View actual
+    public UserControl CurrentView
     {
-        string connectionString = "Data Source=authgatun.db";
-        using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+        get => _currentView;
+        set
         {
-            connection.Open();
-            string query = "SELECT * FROM secrets";
-            using (SQLiteCommand command = new SQLiteCommand(query, connection))
-            using (SQLiteDataReader reader = command.ExecuteReader())
-            {
-                while (reader.Read())
-                {
-                    var id = reader.GetInt32(0);
-                    var userName = reader.GetString(1);
-                    var serviceName = reader.GetString(2);
-                    var secretKey = reader.GetString(3);
-                    ServiceKeys.Add(new ServiceKey
-                    {
-                        Id = id,
-                        UserName = userName,
-                        ServiceName = serviceName,
-                        SecretKey = secretKey
-                    });
-                }
-            }
+            _currentView = value;
+            OnPropertyChanged();
         }
     }
-
-    public ObservableCollection<ServiceKey> GetServiceKeys()
+    
+    public ICommand ShowHomeViewCommand { get; }
+    public ICommand ShowKeysViewCommand { get; }
+    public ICommand ShowSettingsViewCommand { get; }
+    
+    private void ShowHomeView() => CurrentView = new HomeView(_mainWindow);
+    private void ShowKeysView() => CurrentView = new KeysView();
+    private void ShowSettingsView() => CurrentView = new SettingsView();
+    
+    public event PropertyChangedEventHandler PropertyChanged;
+    
+    protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
     {
-        return ServiceKeys;
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+    public class RelayCommand : ICommand
+    {
+        private readonly Action _execute;
+
+        public RelayCommand(Action execute)
+        {
+            _execute = execute;
+        }
+
+        public event EventHandler CanExecuteChanged;
+
+        public bool CanExecute(object parameter) => true;
+
+        public void Execute(object parameter) => _execute();
     }
 }

@@ -1,3 +1,5 @@
+namespace AuthGatun.Models;
+
 public class ServiceKey
 {
     public int Id { get; set; }

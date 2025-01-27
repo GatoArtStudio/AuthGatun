@@ -4,7 +4,7 @@ using Avalonia.VisualTree;
 using Avalonia.Input.Platform;
 using Avalonia.Controls.ApplicationLifetimes;
 
-namespace App.Helpers;
+namespace AuthGatun.Helpers;
 public class ClipboardClass {
     public static IClipboard Get() {
 

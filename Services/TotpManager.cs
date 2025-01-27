@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using AuthGatun.Models;
 using OtpNet;
 
 namespace AuthGatun.ViewModels;
