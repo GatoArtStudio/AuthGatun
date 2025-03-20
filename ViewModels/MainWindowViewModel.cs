@@ -34,7 +34,7 @@ public partial class MainWindowViewModel : INotifyPropertyChanged
     public ICommand ShowKeysViewCommand { get; }
     public ICommand ShowSettingsViewCommand { get; }
     
-    private void ShowHomeView() => CurrentView = new HomeView(_mainWindow);
+    private void ShowHomeView() => CurrentView = new HomeView();
     private void ShowKeysView() => CurrentView = new KeysView();
     private void ShowSettingsView() => CurrentView = new SettingsView();
     

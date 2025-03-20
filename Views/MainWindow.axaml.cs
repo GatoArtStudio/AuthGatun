@@ -1,3 +1,4 @@
+using AuthGatun.Core;
 using Avalonia.Controls;
 using AuthGatun.ViewModels;
 
@@ -9,5 +10,9 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         DataContext = new MainWindowViewModel(this);
+        
+        // NotifyManager.GetInstance().MainWindow = this;
+        NotifyManager notifyManager = NotifyManager.GetInstance();
+        notifyManager.MainWindow = this;
     }
 }
