@@ -11,7 +11,6 @@ using AuthGatun.Domains.IdentityAccess.Infrastructure.Services;
 using AuthGatun.Services;
 using AuthGatun.Views;
 using CommunityToolkit.Mvvm.Input;
-using ReactiveUI;
 
 namespace AuthGatun.ViewModels;
 
