@@ -1,0 +1,51 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:AuthGatun.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
+        Width="400"
+        Height="600"
+        x:Class="AuthGatun.Views.RegisterWindow"
+        x:DataType="vm:RegisterWindowViewModel"
+        Icon="/Assets/logo.ico"
+        Title="RegisterWindow"
+        RequestedThemeVariant="Dark">
+        
+        <StackPanel
+                Margin="30"
+                Spacing="10">
+                <TextBlock
+                        Text="Nombre de Usuario"/>
+                <TextBox
+                        Text="{Binding Username, Mode=TwoWay}"
+                        Watermark="User"/>
+                <TextBlock
+                        Text="Contraseña"/>
+                <TextBox
+                        Text="{Binding Newpassword, Mode=TwoWay}"
+                        Watermark="New password"
+                        PasswordChar="*"/>
+                <TextBlock
+                        Text="Repetir la contraseña"/>
+                <TextBox
+                        Text="{Binding Repeatpassword, Mode=TwoWay}"
+                        Watermark="Repeat password"
+                        PasswordChar="*"/>
+                <Button
+                        Content="Registrar"
+                        HorizontalContentAlignment="Center"
+                        HorizontalAlignment="Stretch"
+                        Command="{Binding RegisterCommand}"/>
+                <Button
+                        Content="Ir a iniciar sesión"
+                        HorizontalContentAlignment="Center"
+                        HorizontalAlignment="Stretch"
+                        Command="{Binding ChangeToLoginWindowCommand}"/>
+                <TextBlock 
+                        Text="{Binding Messagestatus}"
+                        FontWeight="Bold"
+                        Foreground="Red"
+                        HorizontalAlignment="Stretch" />
+        </StackPanel>
+</Window>

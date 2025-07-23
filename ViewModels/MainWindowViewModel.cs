@@ -6,7 +6,7 @@ using AuthGatun.Views;
 using Avalonia.Controls;
 
 namespace AuthGatun.ViewModels;
-public partial class MainWindowViewModel : INotifyPropertyChanged
+public class MainWindowViewModel : INotifyPropertyChanged
 {
     private UserControl _currentView;
     private MainWindow _mainWindow;
@@ -34,9 +34,22 @@ public partial class MainWindowViewModel : INotifyPropertyChanged
     public ICommand ShowKeysViewCommand { get; }
     public ICommand ShowSettingsViewCommand { get; }
     
-    private void ShowHomeView() => CurrentView = new HomeView();
-    private void ShowKeysView() => CurrentView = new KeysView();
-    private void ShowSettingsView() => CurrentView = new SettingsView();
+    private void ShowHomeView()
+    {
+        CurrentView = new HomeView();
+        CurrentView.DataContext = new HomeViewModel();
+    }
+
+    private void ShowKeysView()
+    {
+        CurrentView = new KeysView();
+        CurrentView.DataContext = new KeyViewModel();
+    }
+
+    private void ShowSettingsView()
+    {
+        CurrentView = new SettingsView();
+    }
     
     public event PropertyChangedEventHandler PropertyChanged;
     

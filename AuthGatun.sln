@@ -5,6 +5,8 @@ VisualStudioVersion = 17.5.002.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthGatun", "AuthGatun.csproj", "{39C375F2-1DBF-43A6-A94D-912F8F63266A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthGatun.Tests", "..\AuthGatun.Tests\AuthGatun.Tests.csproj", "{A76D984B-9BC6-4F0A-9274-0E55D62AC931}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{39C375F2-1DBF-43A6-A94D-912F8F63266A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{39C375F2-1DBF-43A6-A94D-912F8F63266A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{39C375F2-1DBF-43A6-A94D-912F8F63266A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A76D984B-9BC6-4F0A-9274-0E55D62AC931}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A76D984B-9BC6-4F0A-9274-0E55D62AC931}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A76D984B-9BC6-4F0A-9274-0E55D62AC931}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A76D984B-9BC6-4F0A-9274-0E55D62AC931}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

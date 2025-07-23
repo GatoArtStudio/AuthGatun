@@ -14,15 +14,24 @@
     </Design.DataContext>
     
     <StackPanel x:Name="LayoutUp">
-        <ItemsControl Height="550" ItemsSource='{Binding ServiceKeys}'>
+        <ItemsControl Height="550" ItemsSource='{Binding UserKeys}'>
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
                     <Button Classes="keys"
                             Content='{Binding ServiceName}'
                             HorizontalAlignment='Center'
-                            CommandParameter="{Binding SecretKey}"
+                            CommandParameter="{Binding Id}"
                             Command="{Binding $parent[ItemsControl].((vm:HomeViewModel)DataContext).CopyToClipboardCodeCommand}"
-                            />
+                            >
+                        <Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem 
+                                    Header="Eliminar"
+                                    CommandParameter="{Binding Id}"
+                                    Command="{Binding Command}"/>
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>

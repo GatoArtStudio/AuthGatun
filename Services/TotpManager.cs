@@ -1,18 +1,9 @@
-using System.Collections.ObjectModel;
-using AuthGatun.Models;
 using OtpNet;
 
-namespace AuthGatun.ViewModels;
+namespace AuthGatun.Services;
 
 public class TotpManager
 {
-    public ObservableCollection<ServiceKey> ServiceKeys { get; set; }
-
-    public TotpManager(ObservableCollection<ServiceKey> serviceKeys)
-    {
-        ServiceKeys = serviceKeys;
-    }
-
     public string GetTotpCode(string secretKey)
     {
         var totp = new Totp(Base32Encoding.ToBytes(secretKey));
