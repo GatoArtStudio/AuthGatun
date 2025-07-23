@@ -2,10 +2,9 @@ using Avalonia.Controls;
 
 namespace AuthGatun.Views;
 
-public partial class HomeView : UserControl
+public partial class RegisterWindow : Window
 {
-    
-    public HomeView()
+    public RegisterWindow()
     {
         InitializeComponent();
     }
