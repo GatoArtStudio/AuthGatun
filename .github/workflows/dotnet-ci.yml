@@ -5,9 +5,18 @@ name: .NET
 
 on:
   push:
-    branches: [ "Gatun" ]
+    branches:
+      - "release"
+      - "develop"
+      - "hotfix"
+      - "feature/**"
   pull_request:
-    branches: [ "Gatun" ]
+    branches:
+      - "main"
+      - "release"
+      - "develop"
+      - "hotfix"
+      - "feature/**"
 
 jobs:
   build:
