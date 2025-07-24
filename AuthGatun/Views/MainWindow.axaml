@@ -1,0 +1,50 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:AuthGatun.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
+        Width="400"
+        Height="600"
+        x:Class="AuthGatun.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/logo.ico"
+        Title="AuthGatun"
+        RequestedThemeVariant="Dark"
+        x:CompileBindings="True">
+
+    <Window.Styles>
+        <Style Selector="Button.keys">
+            <Setter Property="Width" Value="360" />
+            <Setter Property="Margin" Value="0 10 0 0" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="CornerRadius" Value="10" />
+        </Style>
+        <Style Selector="Button.Dock">
+            <Setter Property="Width" Value="100" />
+            <Setter Property="Margin" Value="10 0 10 0" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="CornerRadius" Value="10" />
+        </Style>
+    </Window.Styles>
+    
+    <Grid 
+        RowDefinitions="*,Auto">
+        
+        <ContentControl 
+            Content="{Binding CurrentView}" 
+            Grid.Row="0" />
+        
+        <DockPanel 
+            Height="40" 
+            Background="#36000011" 
+            x:Name="DockButtonsDown" 
+            Grid.Row="1" 
+            HorizontalAlignment="Center">
+            
+            <Button Classes="Dock" Command="{Binding ShowHomeViewCommand}">Home</Button>
+            <Button Classes="Dock" Command="{Binding ShowKeysViewCommand}">Keys</Button>
+            <Button Classes="Dock" Command="{Binding ShowSettingsViewCommand}">Settings</Button>
+        </DockPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,44 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:AuthGatun.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
+        Width="400"
+        Height="600"
+        x:Class="AuthGatun.Views.LoginWindow"
+        x:DataType="vm:LoginWindowViewModel"
+        Icon="/Assets/logo.ico"
+        Title="LoginWindow"
+        RequestedThemeVariant="Dark"
+        x:CompileBindings="True">
+    
+        <StackPanel
+            Margin="30"
+            Spacing="10">
+            <TextBlock>Nombre de usuario</TextBlock>
+            <TextBox
+                Text="{Binding Username, Mode=TwoWay}"
+                Watermark="User" />
+            <TextBlock>Contraseña</TextBlock>
+            <TextBox
+                Text="{Binding Password, Mode=TwoWay}"
+                Watermark="Password"
+                PasswordChar="*" />
+            <Button
+                Content="Iniciar Sesión"
+                HorizontalContentAlignment="Center"
+                HorizontalAlignment="Stretch"
+                Command="{Binding LoginVerificationCommand}" />
+            <Button
+                Content="Register"
+                HorizontalContentAlignment="Center"
+                HorizontalAlignment="Stretch"
+                Command="{Binding ChangeToRegisterWindowCommand}" />
+            <TextBlock 
+                Text="{Binding Messagestatus}"
+                FontWeight="Bold"
+                Foreground="Red"
+                HorizontalAlignment="Stretch" />
+        </StackPanel>
+</Window>
