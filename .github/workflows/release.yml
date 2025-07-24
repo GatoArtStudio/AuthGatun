@@ -1,0 +1,68 @@
+name: Publish Release with Native AOT
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+
+  # 1️⃣ Crear release una sola vez
+  create_release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Crear release en GitHub
+        uses: actions/create-release@v1
+        id: create_release
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: "Release ${{ github.ref_name }}"
+          body: "Builds para Linux y Windows (Native AOT)"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # 2️⃣ Compilar para Linux (Ubuntu)
+  build_linux:
+    needs: create_release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Publicar para Linux
+        run: dotnet publish AuthGatun/AuthGatun.csproj -c Release -r linux-x64 -p:PublishAot=true --self-contained -o dist/linux
+
+      - name: Subir artefacto Linux
+        run: gh release upload "${{ github.ref_name }}" dist/linux/* --repo "${{ github.repository }}" --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # 3️⃣ Compilar para Windows
+  build_windows:
+    needs: create_release
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Publicar para Windows
+        run: dotnet publish AuthGatun/AuthGatun.csproj -c Release -r win-x64 -p:PublishAot=true --self-contained -o dist/windows
+
+      - name: Subir artefacto Windows
+        run: gh release upload "${{ github.ref_name }}" dist/windows/* --repo "${{ github.repository }}" --clobber
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
