@@ -30,14 +30,20 @@
     <PackageReference Include="System.Data.SQLite" Version="1.0.119" />
   </ItemGroup>
 
-  <Target Name="CopyDiscordSdk" AfterTargets="Publish">
+  <Target
+          Name="CopyDiscordSdk" 
+          AfterTargets="Publish"
+          Condition="'$(RuntimeIdentifier)' == 'linux-x64'">
     <ItemGroup>
       <DiscordSdk Include="lib/x86_64/discord_game_sdk.so" />
     </ItemGroup>
     <Copy SourceFiles="@(DiscordSdk)" DestinationFolder="$(PublishDir)" />
     <Message Text="✔ Copied discord_game_sdk.so into publish folder, for Linux." Importance="High" />
   </Target>
-  <Target Name="CopyDiscordSdkWindows" AfterTargets="Publish">
+  <Target 
+          Name="CopyDiscordSdkWindows" 
+          AfterTargets="Publish"
+          Condition="'$(RuntimeIdentifier)' == 'win-x64'">
     <ItemGroup>
       <DiscordSdkWindows Include="lib\x86_64\discord_game_sdk.dll" />
     </ItemGroup>
