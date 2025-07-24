@@ -33,10 +33,10 @@ jobs:
             --self-contained true \
             -o out/linux
 
-      - name: Zip Linux build
+      - name: Zip Linux build (excluding .dbg)
         run: |
           cd out/linux
-          zip -r ../../AuthGatun-linux-x64.zip .
+          zip -r ../../AuthGatun-linux-x64.zip . -x "*.dbg"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -67,9 +67,9 @@ jobs:
             --self-contained true `
             -o out/windows
 
-      - name: Zip Windows build
+      - name: Zip Windows build (excluding .pdb)
         run: |
-          Compress-Archive -Path out/windows/* -DestinationPath AuthGatun-win-x64.zip
+          Get-ChildItem -Path out/windows -Exclude *.pdb | Compress-Archive -DestinationPath AuthGatun-win-x64.zip
 
       - uses: actions/upload-artifact@v4
         with:
