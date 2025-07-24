@@ -1,4 +1,4 @@
-name: Publish Release (Native AOT)
+name: Release Native AOT
 
 on:
   push:
@@ -7,11 +7,10 @@ on:
 
 permissions:
   contents: write
-  packages: write
 
 jobs:
   build-linux:
-    name: Build Linux
+    name: Build for Linux
     runs-on: ubuntu-latest
 
     steps:
@@ -20,20 +19,23 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: 8.0.x
 
-      - name: Publish Linux binary
+      - name: Restore
+        run: dotnet restore AuthGatun/AuthGatun.sln
+
+      - name: Publish (Linux AOT)
         run: |
-          dotnet publish AuthGatun.csproj \
+          dotnet publish AuthGatun/AuthGatun.csproj \
             -c Release \
             -r linux-x64 \
             -p:PublishAot=true \
             --self-contained true \
-            -o ./publish/linux
+            -o out/linux
 
       - name: Zip Linux build
         run: |
-          cd publish/linux
+          cd out/linux
           zip -r ../../AuthGatun-linux-x64.zip .
 
       - uses: actions/upload-artifact@v4
@@ -42,7 +44,7 @@ jobs:
           path: AuthGatun-linux-x64.zip
 
   build-windows:
-    name: Build Windows
+    name: Build for Windows
     runs-on: windows-latest
 
     steps:
@@ -51,20 +53,23 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: 8.0.x
 
-      - name: Publish Windows binary
+      - name: Restore
+        run: dotnet restore AuthGatun\AuthGatun.sln
+
+      - name: Publish (Windows AOT)
         run: |
-          dotnet publish AuthGatun.csproj `
+          dotnet publish AuthGatun\AuthGatun.csproj `
             -c Release `
             -r win-x64 `
             -p:PublishAot=true `
             --self-contained true `
-            -o ./publish/windows
+            -o out/windows
 
       - name: Zip Windows build
         run: |
-          Compress-Archive -Path ./publish/windows/* -DestinationPath AuthGatun-win-x64.zip
+          Compress-Archive -Path out/windows/* -DestinationPath AuthGatun-win-x64.zip
 
       - uses: actions/upload-artifact@v4
         with:
