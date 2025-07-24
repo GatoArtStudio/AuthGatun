@@ -1,4 +1,8 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using AuthGatun.Domains.IdentityAccess.Domain.Aggregate;
+using Avalonia.Threading;
 
 namespace AuthGatun.Services;
 
@@ -25,5 +29,47 @@ public class UserStatus
         }
 
         return _instance;
+    }
+
+    public void RunRpcDiscord()
+    {
+        string clientId = "1398030119947473037";
+        var discord = new Discord.Discord(Int64.Parse(clientId), (ulong) Discord.CreateFlags.NoRequireDiscord);
+        var activityManager = discord.GetActivityManager();
+
+        var activity = new Discord.Activity
+        {
+            Type = Discord.ActivityType.Playing,
+            State = "AuthGatun",
+            Details = "Aplicacion de autenticación",
+            Assets =
+            {
+                LargeImage = "logo",
+                LargeText = "GatoArtStudio",
+                SmallImage = "logo",
+                SmallText = "AuthGatun"
+            },
+            Instance = false
+        };
+        
+        activityManager.UpdateActivity(activity, result =>
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (result == Discord.Result.Ok)
+                    NotifyManager.GetInstance().SendNotifyInWindow("Discord RPC is running successfully.", "Discord RPC");
+                else
+                    NotifyManager.GetInstance().SendNotifyInWindow("Discord RPC failed to start.", "Discord RPC");
+            });
+        });
+
+        _ = Task.Run(() =>
+        {
+            while (true)
+            {
+                discord.RunCallbacks();
+                Thread.Sleep(1000); // Update every minute
+            }
+        });
     }
 }

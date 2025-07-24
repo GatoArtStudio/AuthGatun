@@ -20,7 +20,6 @@
     <PackageReference Include="Avalonia.ReactiveUI" Version="11.1.0" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.1.0" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="11.1.0" />
-    <TrimmerRootAssembly Include="Avalonia.Themes.Fluent" />
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
     <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.1.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
@@ -31,7 +30,22 @@
     <PackageReference Include="System.Data.SQLite" Version="1.0.119" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Domains\IdentityAccess\Infrastructure\Persistence\Repositories\Abstract\" />
-  </ItemGroup>
+  <Target Name="CopyDiscordSdk" AfterTargets="Publish">
+    <ItemGroup>
+      <DiscordSdk Include="lib/x86_64/discord_game_sdk.so" />
+    </ItemGroup>
+    <Copy SourceFiles="@(DiscordSdk)" DestinationFolder="$(PublishDir)" />
+    <Message Text="✔ Copied discord_game_sdk.so into publish folder, for Linux." Importance="High" />
+  </Target>
+  <Target Name="CopyDiscordSdkWindows" AfterTargets="Publish">
+    <ItemGroup>
+      <DiscordSdkWindows Include="lib\x86_64\discord_game_sdk.dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(DiscordSdkWindows)" DestinationFolder="$(PublishDir)" />
+    <Message Text="✔ Copied discord_game_sdk.dll into publish folder, for Windows." Importance="High" />
+  </Target>
+  <Target Name="CleanExtraNativeFolders" AfterTargets="CopyDiscordSdkLinux">
+    <RemoveDir Directories="$(PublishDir)lib" />
+    <Message Text="🧼 Removed extra runtimes folder" Importance="High" />
+  </Target>
 </Project>

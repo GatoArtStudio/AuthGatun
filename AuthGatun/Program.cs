@@ -5,6 +5,7 @@ using AuthGatun.Domains.IdentityAccess.Infrastructure.Eventbus;
 using AuthGatun.Domains.IdentityAccess.Infrastructure.Eventbus.Model;
 using AuthGatun.Domains.IdentityAccess.Infrastructure.Persistence;
 using AuthGatun.Domains.IdentityAccess.Infrastructure.Persistence.Model;
+using AuthGatun.Services;
 using Avalonia.ReactiveUI;
 
 namespace AuthGatun;
