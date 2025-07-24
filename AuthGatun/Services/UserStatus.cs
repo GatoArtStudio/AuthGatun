@@ -31,7 +31,7 @@ public class UserStatus
         return _instance;
     }
 
-    public void RunRpcDiscord()
+    public void RunRpcDiscord(string user = "AuthGatun")
     {
         string clientId = "1398030119947473037";
         var discord = new Discord.Discord(Int64.Parse(clientId), (ulong) Discord.CreateFlags.NoRequireDiscord);
@@ -40,8 +40,8 @@ public class UserStatus
         var activity = new Discord.Activity
         {
             Type = Discord.ActivityType.Playing,
-            State = "AuthGatun",
-            Details = "Aplicacion de autenticación",
+            State = user,
+            Details = "Aplicacion de autenticación por GatoArtStudio.",
             Assets =
             {
                 LargeImage = "logo",
