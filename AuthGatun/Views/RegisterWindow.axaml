@@ -10,7 +10,8 @@
         x:DataType="vm:RegisterWindowViewModel"
         Icon="/Assets/logo.ico"
         Title="RegisterWindow"
-        RequestedThemeVariant="Dark">
+        RequestedThemeVariant="Dark"
+        x:CompileBindings="True">
         
         <StackPanel
                 Margin="30"

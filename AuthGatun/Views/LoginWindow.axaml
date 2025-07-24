@@ -10,7 +10,8 @@
         x:DataType="vm:LoginWindowViewModel"
         Icon="/Assets/logo.ico"
         Title="LoginWindow"
-        RequestedThemeVariant="Dark">
+        RequestedThemeVariant="Dark"
+        x:CompileBindings="True">
     
         <StackPanel
             Margin="30"

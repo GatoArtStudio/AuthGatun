@@ -10,7 +10,8 @@
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/logo.ico"
         Title="AuthGatun"
-        RequestedThemeVariant="Dark">
+        RequestedThemeVariant="Dark"
+        x:CompileBindings="True">
 
     <Window.Styles>
         <Style Selector="Button.keys">
