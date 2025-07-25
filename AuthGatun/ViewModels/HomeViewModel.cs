@@ -46,7 +46,7 @@ public class HomeViewModel : ReactiveObject
 
         UserKeys = GetUserKeys();
         var user = UserStatus.GetInstance().User;
-        UserStatus.GetInstance().RunRpcDiscord(user?.Username.Value ?? "AuthGatun");
+        UserStatus.GetInstance().RunRpcDiscord(user?.Username.Value ?? "AuthGatun", "Viendo las claves TOTP");
     }
 
     private ObservableCollection<UserKey> GetUserKeys()
