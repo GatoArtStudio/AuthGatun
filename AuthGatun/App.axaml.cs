@@ -31,6 +31,8 @@ public partial class App : Application
             var window = new LoginWindow();
             window.DataContext = new LoginWindowViewModel(this);
             SetWindow(window);
+            
+            UserStatus.GetInstance().RunRpcDiscord();
         }
 
         base.OnFrameworkInitializationCompleted();
