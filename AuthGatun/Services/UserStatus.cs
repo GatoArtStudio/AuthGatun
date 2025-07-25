@@ -31,7 +31,10 @@ public class UserStatus
         return _instance;
     }
 
-    public void RunRpcDiscord(string user = "AuthGatun")
+    public void RunRpcDiscord(
+        string user = "AuthGatun",
+        string details = "Aplicacion de autenticación TOTP, desarrollada por GatoArtStudio."
+        )
     {
         string clientId = "1398030119947473037";
         var discord = new Discord.Discord(Int64.Parse(clientId), (ulong) Discord.CreateFlags.NoRequireDiscord);
@@ -41,7 +44,7 @@ public class UserStatus
         {
             Type = Discord.ActivityType.Playing,
             State = user,
-            Details = "Aplicacion de autenticación TOTP, desarrollada por GatoArtStudio.",
+            Details = details,
             Assets =
             {
                 LargeImage = "logo",
