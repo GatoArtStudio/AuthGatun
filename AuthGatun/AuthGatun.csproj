@@ -30,6 +30,19 @@
     <PackageReference Include="System.Data.SQLite" Version="1.0.119" />
   </ItemGroup>
 
+  <!-- Discord Games SDK for Linux added to development environment. -->
+  <Target Name="CopyDiscordSdkAlways" AfterTargets="Build">
+    <ItemGroup>
+      <NativeLibs Include="lib/x86_64/discord_game_sdk.so" />
+    </ItemGroup>
+    <Copy
+            SourceFiles="@(NativeLibs)"
+            DestinationFolder="$(OutputPath)"
+            SkipUnchangedFiles="true" />
+    <Message Text="📥 Copied discord_game_sdk.so to $(OutputPath) after build." Importance="High" />
+  </Target>
+  
+  <!-- Discord Games SDK for Linux added. -->
   <Target
           Name="CopyDiscordSdk" 
           AfterTargets="Publish"
@@ -40,6 +53,8 @@
     <Copy SourceFiles="@(DiscordSdk)" DestinationFolder="$(PublishDir)" />
     <Message Text="✔ Copied discord_game_sdk.so into publish folder, for Linux." Importance="High" />
   </Target>
+  
+  <!-- Discord Games SDK for Windows added. -->
   <Target 
           Name="CopyDiscordSdkWindows" 
           AfterTargets="Publish"
@@ -50,6 +65,8 @@
     <Copy SourceFiles="@(DiscordSdkWindows)" DestinationFolder="$(PublishDir)" />
     <Message Text="✔ Copied discord_game_sdk.dll into publish folder, for Windows." Importance="High" />
   </Target>
+  
+  <!-- Remove unnecessary directories in final publication files. -->
   <Target Name="CleanExtraNativeFolders" AfterTargets="CopyDiscordSdkLinux">
     <RemoveDir Directories="$(PublishDir)lib" />
     <Message Text="🧼 Removed extra runtimes folder" Importance="High" />
