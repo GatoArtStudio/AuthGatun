@@ -106,6 +106,8 @@ public class RegisterWindowViewModel(App app) : INotifyPropertyChanged
         var windows = new LoginWindow();
         windows.DataContext = new LoginWindowViewModel(_app);
         _app.SetWindow(windows);
+        
+        UserStatus.GetInstance().RunRpcDiscord("AuthGatun", "Iniciemos sesión!.");
     }
     
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = "")
