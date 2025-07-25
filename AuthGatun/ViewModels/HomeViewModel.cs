@@ -45,7 +45,8 @@ public class HomeViewModel : ReactiveObject
         DeleteServiceKeyCommand = ReactiveCommand.Create<Guid>(OnDeleteServiceKeyCommand, Observable.Return(true));
 
         UserKeys = GetUserKeys();
-        UserStatus.GetInstance().RunRpcDiscord();
+        var user = UserStatus.GetInstance().User;
+        UserStatus.GetInstance().RunRpcDiscord(user?.Username.Value ?? "AuthGatun");
     }
 
     private ObservableCollection<UserKey> GetUserKeys()
