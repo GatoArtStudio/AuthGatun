@@ -41,13 +41,13 @@ public class UserStatus
         {
             Type = Discord.ActivityType.Playing,
             State = user,
-            Details = "Aplicacion de autenticación por GatoArtStudio.",
+            Details = "Aplicacion de autenticación TOTP, desarrollada por GatoArtStudio.",
             Assets =
             {
                 LargeImage = "logo",
-                LargeText = "GatoArtStudio",
-                SmallImage = "logo",
-                SmallText = "AuthGatun"
+                LargeText = "AuthGatun",
+                SmallImage = "logo_owner",
+                SmallText = "GatoArtStudio"
             },
             Instance = false
         };
