@@ -14,16 +14,29 @@
         <vm:HomeViewModel/>
     </Design.DataContext>
     
-    <StackPanel x:Name="LayoutUp">
-        <ItemsControl Height="550" ItemsSource='{Binding UserKeys}'>
+    <UserControl.Styles>
+        <Style Selector="Button.keys">
+            <Setter Property="Margin" Value="0 10 0 0" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="CornerRadius" Value="10" />
+        </Style>
+    </UserControl.Styles>
+    
+    <StackPanel
+        x:Name="LayoutUp">
+        <ItemsControl 
+            Margin="20"
+            ItemsSource='{Binding UserKeys}'>
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
-                    <Button Classes="keys"
-                            Content='{Binding ServiceName}'
-                            HorizontalAlignment='Center'
-                            CommandParameter="{Binding Id}"
-                            Command="{Binding $parent[ItemsControl].((vm:HomeViewModel)DataContext).CopyToClipboardCodeCommand}"
-                            >
+                    <Button
+                        Classes="keys"
+                        Content='{Binding ServiceName}'
+                        HorizontalAlignment='Stretch'
+                        CommandParameter="{Binding Id}"
+                        Command="{Binding $parent[ItemsControl].((vm:HomeViewModel)DataContext).CopyToClipboardCodeCommand}"
+                        >
                         <Button.ContextMenu>
                             <ContextMenu>
                                 <MenuItem 
