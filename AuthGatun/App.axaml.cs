@@ -32,7 +32,7 @@ public partial class App : Application
             window.DataContext = new LoginWindowViewModel(this);
             SetWindow(window);
             
-            UserStatus.GetInstance().RunRpcDiscord();
+            Discord.GetInstance().UpdatePresence();
         }
 
         base.OnFrameworkInitializationCompleted();
