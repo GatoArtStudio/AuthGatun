@@ -29,6 +29,7 @@
                 Content="Iniciar Sesión"
                 HorizontalContentAlignment="Center"
                 HorizontalAlignment="Stretch"
+                IsDefault="True"
                 Command="{Binding LoginVerificationCommand}" />
             <Button
                 Content="Register"
