@@ -78,7 +78,7 @@ public class LoginWindowViewModel(App app) : INotifyPropertyChanged
         windows.DataContext = new RegisterWindowViewModel(_app);
         _app.SetWindow(windows);
         
-        UserStatus.GetInstance().RunRpcDiscord("AuthGatun", "Registrando un nuevo usuario.");
+        Discord.GetInstance().UpdatePresence("AuthGatun", "Registrando un nuevo usuario.");
     }
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = "")
