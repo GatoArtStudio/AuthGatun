@@ -41,7 +41,7 @@ public class KeyViewModel : ReactiveObject
         SaveKeyCommand = ReactiveCommand.Create(OnSaveKeyCommand);
         
         var user = UserStatus.GetInstance().User;
-        UserStatus.GetInstance().RunRpcDiscord(user?.Username.Value ?? "AuthGatun", "Agregemos una nueva clave TOTP!.");
+        Discord.GetInstance().UpdatePresence(user?.Username.Value ?? "AuthGatun", "Agregemos una nueva clave TOTP!.");
     }
 
     private void OnSaveKeyCommand()

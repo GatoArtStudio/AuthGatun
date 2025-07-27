@@ -37,6 +37,7 @@
                         Content="Registrar"
                         HorizontalContentAlignment="Center"
                         HorizontalAlignment="Stretch"
+                        IsDefault="True"
                         Command="{Binding RegisterCommand}"/>
                 <Button
                         Content="Ir a iniciar sesión"
