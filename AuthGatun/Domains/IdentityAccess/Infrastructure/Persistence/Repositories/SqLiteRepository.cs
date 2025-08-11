@@ -34,7 +34,7 @@ public class SqLiteRepository : IUserRepository
         // Ensure the directory exists and create the database file if it does not exist
         if (!File.Exists(_dbPath))
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(Path.Combine(_appFolderPathData, "AuthGatun"))!);
+            Directory.CreateDirectory(Path.GetDirectoryName(_dbPath)!);
             SQLiteConnection.CreateFile(_dbPath);
         }
         _connection = new SQLiteConnection($"Data Source={_dbPath};Version=3;");
