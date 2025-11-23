@@ -16,15 +16,19 @@
             Text="Nombre del Servicio" />
         <TextBox
             Watermark="Ingresa el nombre del servicio"
+            Classes="default"
             Text="{Binding ServiceName, Mode=TwoWay}"/>
         <TextBlock 
             Text="Ingresa la clave"/>
         <TextBox 
             Watermark="Ingresa la clave totp"
+            Classes="default"
             Text="{Binding TotpKey, Mode=TwoWay}"/>
         <Button 
             Content="Guardar"
-            HorizontalAlignment="Center"
+            HorizontalContentAlignment="Center"
+            HorizontalAlignment="Stretch"
+            Classes="default"
             Command="{Binding SaveKeyCommand}"/>
     </StackPanel>
 </UserControl>
