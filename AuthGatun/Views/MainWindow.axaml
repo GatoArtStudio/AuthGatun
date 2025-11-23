@@ -4,21 +4,26 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
-        Width="400"
-        Height="600"
+        Width="500"
+        Height="700"
+        MinWidth="500"
+        MinHeight="700"
         x:Class="AuthGatun.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/logo.ico"
         Title="AuthGatun"
+        TransparencyLevelHint="AcrylicBlur, Blur"
+        ExtendClientAreaToDecorationsHint="True"
+        Background="#7F000000"
         RequestedThemeVariant="Dark"
         x:CompileBindings="True">
 
     <Window.Styles>
         <Style Selector="Button.Dock">
-            <Setter Property="Width" Value="100" />
-            <Setter Property="Margin" Value="10 0 10 0" />
+            <Setter Property="MinWidth" Value="100" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
-            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="HorizontalAlignment" Value="Stretch"></Setter>
+            <Setter Property="Margin" Value="5, 0, 5, 0"></Setter>
         </Style>
     </Window.Styles>
     
@@ -30,15 +35,17 @@
             Grid.Row="0" />
         
         <DockPanel 
-            Height="40" 
-            Background="#36000011" 
+            Height="50" 
+            Background="#14000000" 
             x:Name="DockButtonsDown" 
             Grid.Row="1" 
-            HorizontalAlignment="Center">
+            HorizontalAlignment="Stretch">
             
-            <Button Classes="Dock" Command="{Binding ShowHomeViewCommand}">Home</Button>
-            <Button Classes="Dock" Command="{Binding ShowKeysViewCommand}">Keys</Button>
-            <Button Classes="Dock" Command="{Binding ShowSettingsViewCommand}">Settings</Button>
+            <Grid ColumnDefinitions="*, *, *" HorizontalAlignment="Stretch">
+                <Button Grid.Column="0" Classes="Dock default" Command="{Binding ShowHomeViewCommand}">Home</Button>
+                <Button Grid.Column="1" Classes="Dock default" Command="{Binding ShowKeysViewCommand}">Keys</Button>
+                <Button Grid.Column="2" Classes="Dock default" Command="{Binding ShowSettingsViewCommand}">Settings</Button>    
+            </Grid>
         </DockPanel>
     </Grid>
 </Window>

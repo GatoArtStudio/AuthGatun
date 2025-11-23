@@ -19,7 +19,6 @@
             <Setter Property="Margin" Value="0 10 0 0" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
-            <Setter Property="CornerRadius" Value="10" />
         </Style>
     </UserControl.Styles>
     
@@ -31,7 +30,7 @@
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
                     <Button
-                        Classes="keys"
+                        Classes="keys default"
                         Content='{Binding ServiceName}'
                         HorizontalAlignment='Stretch'
                         CommandParameter="{Binding Id}"
