@@ -4,50 +4,77 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:AuthGatun.ViewModels"
         mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
-        Width="400"
-        Height="600"
+        Width="500"
+        Height="700"
         x:Class="AuthGatun.Views.RegisterWindow"
         x:DataType="vm:RegisterWindowViewModel"
         Icon="/Assets/logo.ico"
         Title="RegisterWindow"
+        TransparencyLevelHint="AcrylicBlur, Blur"
+        ExtendClientAreaToDecorationsHint="True"
+        Background="#7F000000"
         RequestedThemeVariant="Dark"
         x:CompileBindings="True">
         
-        <StackPanel
-                Margin="30"
-                Spacing="10">
-                <TextBlock
-                        Text="Nombre de Usuario"/>
-                <TextBox
-                        Text="{Binding Username, Mode=TwoWay}"
-                        Watermark="User"/>
-                <TextBlock
-                        Text="Contraseña"/>
-                <TextBox
-                        Text="{Binding Newpassword, Mode=TwoWay}"
-                        Watermark="New password"
-                        PasswordChar="*"/>
-                <TextBlock
-                        Text="Repetir la contraseña"/>
-                <TextBox
-                        Text="{Binding Repeatpassword, Mode=TwoWay}"
-                        Watermark="Repeat password"
-                        PasswordChar="*"/>
-                <Button
-                        Content="Registrar"
-                        HorizontalContentAlignment="Center"
-                        HorizontalAlignment="Stretch"
-                        IsDefault="True"
-                        Command="{Binding RegisterCommand}"/>
-                <Button
-                        Content="Ir a iniciar sesión"
-                        HorizontalContentAlignment="Center"
-                        HorizontalAlignment="Stretch"
-                        Command="{Binding ChangeToLoginWindowCommand}"/>
-                <TextBlock 
-                        Text="{Binding Messagestatus}"
-                        FontWeight="Bold"
-                        Foreground="Red"
-                        HorizontalAlignment="Stretch" />
-        </StackPanel>
+        <Window.Styles>
+                <Style Selector="StackPanel">
+                        <Setter Property="VerticalAlignment" Value="Center"></Setter>
+                        <Setter Property="Spacing" Value="10"></Setter>
+                </Style>
+        
+                <Style Selector="Border.RegisterCard">
+                        <Setter Property="MinWidth" Value="350"></Setter>
+                        <Setter Property="Background" Value="#10FFFFFF"></Setter>
+                        <Setter Property="CornerRadius" Value="10"></Setter>
+                        <Setter Property="Padding" Value="30"></Setter>
+                        <Setter Property="BorderThickness" Value="1"></Setter>
+                        <Setter Property="VerticalAlignment" Value="Center"></Setter>
+                        <Setter Property="HorizontalAlignment" Value="Center"></Setter>
+                </Style>
+        </Window.Styles>
+        
+        <Border Classes="RegisterCard">
+                <StackPanel>
+                        <TextBlock
+                                HorizontalAlignment="Center"
+                                FontSize="40"
+                                FontWeight="Bold"
+                                Margin="0,10,0,20">
+                                Registrarse
+                        </TextBlock>
+                        <TextBox
+                                Text="{Binding Username, Mode=TwoWay}"
+                                Classes="default"
+                                Watermark="Usuario"/>
+                        <TextBox
+                                Text="{Binding Newpassword, Mode=TwoWay}"
+                                Watermark="Contraseña"
+                                Classes="default"
+                                PasswordChar="*"/>
+                        <TextBox
+                                Text="{Binding Repeatpassword, Mode=TwoWay}"
+                                Watermark="Repetir la contraseña"
+                                Classes="default"
+                                PasswordChar="*"/>
+                        <Button
+                                Content="Registrar"
+                                HorizontalContentAlignment="Center"
+                                HorizontalAlignment="Stretch"
+                                IsDefault="True"
+                                Margin="0,20,0,0"
+                                Classes="default"
+                                Command="{Binding RegisterCommand}"/>
+                        <Button
+                                Content="Ir a iniciar sesión"
+                                HorizontalContentAlignment="Center"
+                                HorizontalAlignment="Stretch"
+                                Classes="default"
+                                Command="{Binding ChangeToLoginWindowCommand}"/>
+                        <TextBlock 
+                                Text="{Binding Messagestatus}"
+                                FontWeight="Bold"
+                                Foreground="Red"
+                                HorizontalAlignment="Stretch" />
+                </StackPanel>
+        </Border>
 </Window>
