@@ -12,5 +12,22 @@
   
     <Application.Styles>
         <FluentTheme />
+        
+        <Style Selector="TextBox.default">
+            <Setter Property="CornerRadius" Value="7"></Setter>
+            <Setter Property="Padding" Value="10"></Setter>
+            <Setter Property="BorderBrush" Value="Gray"></Setter>
+        </Style>
+        
+        <Style Selector="TextBox.default:focus">
+            <Setter Property="BorderBrush" Value="Red"></Setter>
+        </Style>
+        
+        
+        <Style Selector="Button.default">
+            <Setter Property="CornerRadius" Value="7"></Setter>
+            <Setter Property="Padding" Value="10"></Setter>
+        </Style>
+        
     </Application.Styles>
 </Application>
