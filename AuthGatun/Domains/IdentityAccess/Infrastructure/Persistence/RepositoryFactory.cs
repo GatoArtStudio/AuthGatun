@@ -9,39 +9,12 @@ namespace AuthGatun.Domains.IdentityAccess.Infrastructure.Persistence;
 
 public class RepositoryFactory
 {
-    private static RepositoryFactory? _instance;
-    private static readonly object Lock = new object();
-    
     private readonly ConcurrentDictionary<TypeRepository, IUserRepository> _repositories = new();
     private readonly RepositoryOptions _options;
 
-    private RepositoryFactory(RepositoryOptions options)
+    public RepositoryFactory(RepositoryOptions options)
     {
         _options = options ?? throw new ArgumentNullException(nameof(options));
-    }
-    
-    public static RepositoryFactory GetInstance()
-    {
-        return GetInstance(null);
-    }
-
-    public static RepositoryFactory GetInstance(RepositoryOptions? options)
-    {
-        if (_instance == null)
-        {
-            lock (Lock)
-            {
-                if (_instance == null)
-                {
-                    if (options == null)
-                        throw new ArgumentNullException(nameof(options), "Repository options cannot be null.");
-                    
-                    _instance = new RepositoryFactory(options);
-                }
-            }
-        }
-
-        return _instance;
     }
     
     public IUserRepository CreateRepository()

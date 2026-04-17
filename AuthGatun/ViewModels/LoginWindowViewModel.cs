@@ -1,8 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
+using AuthGatun.Core.AvaloniaUI;
 using AuthGatun.Domains.IdentityAccess.Application.Ports.In.UseCases;
 using AuthGatun.Domains.IdentityAccess.Application.UseCases;
 using AuthGatun.Domains.IdentityAccess.Infrastructure.Eventbus;
@@ -14,12 +14,19 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace AuthGatun.ViewModels;
 
-public class LoginWindowViewModel(App app) : INotifyPropertyChanged
+public class LoginWindowViewModel(
+    IViewModelFactory viewModelFactory,
+    IWindowFactory windowFactory,
+    DiscordService discordService,
+    RepositoryFactory repositoryFactory,
+    BusFactory busFactory,
+    IWindowService windowService,
+    UserStatusService userStatusService
+) : ViewModelBase
 {
     public event PropertyChangedEventHandler? PropertyChanged;
-    private readonly App _app = app ?? throw new ArgumentNullException(nameof(app), "App cannot be null");
-    private readonly ILoginUseCase _login = new LoginUseCase(BusFactory.GetInstance().CreateBus(),
-        RepositoryFactory.GetInstance().CreateRepository(), new Argon2PasswordHasher());
+    private readonly ILoginUseCase _login = new LoginUseCase(busFactory.CreateBus(),
+        repositoryFactory.CreateRepository(), new Argon2PasswordHasher());
 
     private string _username = "";
     private string _password = "";
@@ -66,19 +73,25 @@ public class LoginWindowViewModel(App app) : INotifyPropertyChanged
             return;
         }
 
-        UserStatus.GetInstance().User = userLogin;
-        var windows = new MainWindow();
-        windows.DataContext = new MainWindowViewModel(windows);
-        _app.SetWindow(windows);
+        userStatusService.User = userLogin;
+        
+        var mainViewModel = viewModelFactory.Create<MainWindowViewModel>();
+        var mainWindow = windowFactory.Create<MainWindow, MainWindowViewModel>(mainViewModel);
+        mainWindow.Show();
+        
+        windowService.Close(this);
     }
 
     private void OnChangeToRegisterWindow()
     {
-        var windows = new RegisterWindow();
-        windows.DataContext = new RegisterWindowViewModel(_app);
-        _app.SetWindow(windows);
+
+        var registerViewModel = viewModelFactory.Create<RegisterWindowViewModel>();
+        var registerWindow = windowFactory.Create<RegisterWindow, RegisterWindowViewModel>(registerViewModel);
+        registerWindow.Show();
         
-        Discord.GetInstance().UpdatePresence("AuthGatun", "Registrando un nuevo usuario.");
+        windowService.Close(this);
+        
+        discordService.UpdatePresence("AuthGatun", "Registrando un nuevo usuario.");
     }
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = "")

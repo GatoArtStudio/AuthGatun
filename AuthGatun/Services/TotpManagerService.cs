@@ -2,7 +2,7 @@ using OtpNet;
 
 namespace AuthGatun.Services;
 
-public class TotpManager
+public class TotpManagerService
 {
     public string GetTotpCode(string secretKey)
     {

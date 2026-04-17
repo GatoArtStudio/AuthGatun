@@ -1,22 +1,81 @@
+using System;
+using AuthGatun.Core.AvaloniaUI;
+using AuthGatun.Core.Platform;
+using AuthGatun.Domains.IdentityAccess.Infrastructure.Enums;
+using AuthGatun.Domains.IdentityAccess.Infrastructure.Eventbus;
+using AuthGatun.Domains.IdentityAccess.Infrastructure.Eventbus.Model;
+using AuthGatun.Domains.IdentityAccess.Infrastructure.Persistence;
+using AuthGatun.Domains.IdentityAccess.Infrastructure.Persistence.Model;
+using AuthGatun.Factories;
 using AuthGatun.Services;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using AuthGatun.ViewModels;
 using AuthGatun.Views;
-using Avalonia.Controls;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AuthGatun;
 
 public partial class App : Application
 {
-    private Window? _window;
-    private IClassicDesktopStyleApplicationLifetime? _applicationLifetime;
+    public static IServiceProvider ServiceProvider { get; private set; }
     
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
+
+        var services = new ServiceCollection();
+        
+        // Other Domains
+        services.AddSingleton(new RepositoryOptions(
+            TypeRepository.SqLite, // Change this to TypeRepository.SqLite for SQLite));
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), // Use the base directory of the application
+            null, // DbHost
+            null, // DbPort
+            null, // DbDatabase
+            null, // DbUser
+            null  // DbPassword
+        ));
+        services.AddSingleton<RepositoryFactory>();
+        services.AddSingleton(new BusOptions(
+            TypeBus.Default
+        ));
+        services.AddSingleton<BusFactory>();
+        services.AddSingleton<DiscordService>();
+        services.AddSingleton<IWindowService, WindowService>();
+        services.AddSingleton<NotifyManagerService>();
+        services.AddSingleton<UserStatusService>();
+
+        if (OperatingSystem.IsWindows())
+        {
+            services.AddSingleton<IPlatformService, PlatformNativeWindowsService>();
+        }
+        
+        // View models, They implement ViewModelBase
+        services.AddTransient<LoginWindowViewModel>();
+        services.AddTransient<MainWindowViewModel>();
+        services.AddTransient<RegisterWindowViewModel>();
+        services.AddTransient<HomeViewModel>();
+        services.AddTransient<KeyViewModel>();
+        services.AddTransient<HomeViewModel>();
+        
+        // Windows, They implement Window
+        services.AddTransient<LoginWindow>();
+        services.AddTransient<MainWindow>();
+        services.AddTransient<RegisterWindow>();
+        
+        // User control, They implement UserControl
+        services.AddTransient<HomeView>();
+        services.AddTransient<KeysView>();
+        services.AddTransient<SettingsView>();
+        
+
+        services.AddSingleton<IViewModelFactory, ViewModelFactory>();
+        services.AddSingleton<IWindowFactory, WindowFactory>();
+        services.AddSingleton<IUserControlFactory, UserControlFactory>();
+        
+        ServiceProvider = services.BuildServiceProvider();
     }
 
     public override void OnFrameworkInitializationCompleted()
@@ -25,80 +84,16 @@ public partial class App : Application
         {
             // Line below is needed to remove Avalonia data validation.
             // Without this line you will get duplicate validations from both Avalonia and CT
-            BindingPlugins.DataValidators.RemoveAt(0);
-            _applicationLifetime = desktop;
-
-            var window = new LoginWindow();
-            window.DataContext = new LoginWindowViewModel(this);
-            SetWindow(window);
+            var viewModelFactory = ServiceProvider.GetRequiredService<IViewModelFactory>();
+            var windowFactory = ServiceProvider.GetRequiredService<IWindowFactory>();
+            var loginViewModel = viewModelFactory.Create<LoginWindowViewModel>();
+            var loginWindow = windowFactory.Create<LoginWindow, LoginWindowViewModel>(loginViewModel);
+            var discordService = ServiceProvider.GetRequiredService<DiscordService>();
             
-            Discord.GetInstance().UpdatePresence();
+            desktop.MainWindow = loginWindow;
+            discordService.UpdatePresence();
         }
 
         base.OnFrameworkInitializationCompleted();
-    }
-
-    /// <summary>
-    /// Set the main application window.
-    /// </summary>
-    /// <param name="newWindow">Set a new window as the main application window, remembering to set the DataContext before passing the window to this method.</param>
-    /// <returns>If the application is already started, the new window is established, otherwise it will return False because the application has not yet started.</returns>
-    public bool SetWindow(Window newWindow)
-    {
-        if (_applicationLifetime is null)
-            return false;
-
-        _applicationLifetime.MainWindow = newWindow;
-        newWindow.Show();
-        
-        _window?.Close();
-        
-        _window = newWindow;
-        NotifyManager notifyManager = NotifyManager.GetInstance();
-        notifyManager.MainWindow = newWindow;
-        return true;
-    }
-
-    /// <summary>
-    /// Hide the main window if it is not already hidden.
-    /// </summary>
-    /// <returns>Returns True if the action completes or False if it fails or is already in the state that the method wants to trigger.</returns>
-    public bool HideWindow()
-    {
-        if (_applicationLifetime is null || _window is null)
-            return false;
-        
-        if (!_window.IsVisible)
-            return false; // Already hidden
-        
-        _window.Hide();
-        return true;
-    }
-    
-    /// <summary>
-    /// Close the main window.
-    /// </summary>
-    public void CloseWindow()
-    {
-        if (_applicationLifetime is null || _window is null)
-            return;
-
-        _window.Close();
-    }
-    
-    /// <summary>
-    /// Show the main window if it is not already visible.
-    /// </summary>
-    /// <returns>Returns True if the action completes or False if it fails or is already in the state that the method wants to trigger.</returns>
-    public bool ShowWindow()
-    {
-        if (_applicationLifetime is null || _window is null)
-            return false;
-        
-        if (_window.IsVisible)
-            return false; // Already visible
-        
-        _window.Show();
-        return true;
     }
 }
