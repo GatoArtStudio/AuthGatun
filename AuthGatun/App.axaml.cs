@@ -10,6 +10,7 @@ using AuthGatun.Services;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using AuthGatun.ViewModels;
 using AuthGatun.Views;
 using Microsoft.Extensions.DependencyInjection;
@@ -94,7 +95,9 @@ public partial class App : Application
             var discordService = ServiceProvider.GetRequiredService<DiscordService>();
             
             desktop.MainWindow = loginWindow;
-            ServiceProvider.GetRequiredService<IBackgroundModeService>().Apply();
+            var backgroundMode = ServiceProvider.GetRequiredService<IBackgroundModeService>();
+            backgroundMode.Apply();
+            Program.SingleInstance?.StartListening(() => Dispatcher.UIThread.Post(backgroundMode.ShowCurrent));
             discordService.UpdatePresence();
         }
 
