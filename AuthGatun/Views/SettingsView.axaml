@@ -9,7 +9,13 @@
              x:CompileBindings="True">
     <ScrollViewer>
         <StackPanel Margin="20" Spacing="10">
-            <TextBlock Text="Cambiar contraseña" FontSize="20" FontWeight="Bold" />
+            <TextBlock Text="Bloqueo automático por inactividad" FontSize="20" FontWeight="Bold" />
+            <ComboBox
+                ItemsSource="{Binding AutoLockOptions}"
+                SelectedItem="{Binding SelectedAutoLock, Mode=TwoWay}"
+                HorizontalAlignment="Stretch" />
+
+            <TextBlock Text="Cambiar contraseña" Margin="0,20,0,0" FontSize="20" FontWeight="Bold" />
             <TextBox
                 Text="{Binding CurrentPassword, Mode=TwoWay}"
                 Watermark="Contraseña actual"

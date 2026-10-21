@@ -2,6 +2,7 @@ using System;
 using AuthGatun.Core.AvaloniaUI;
 using AuthGatun.Core.Platform;
 using AuthGatun.Domains.IdentityAccess;
+using AuthGatun.Domains.Settings;
 using AuthGatun.Domains.IdentityAccess.Adapters.Outbound.EventBus;
 using AuthGatun.Domains.IdentityAccess.Adapters.Outbound.Persistence;
 using AuthGatun.Factories;
@@ -37,6 +38,8 @@ public partial class App : Application
             ),
             new BusOptions(TypeBus.Default)
         );
+        services.AddSettingsDomain(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
+        services.AddSingleton<AppSettingsState>();
         services.AddSingleton<DiscordService>();
         services.AddSingleton<IWindowService, WindowService>();
         services.AddSingleton<NotifyManagerService>();
