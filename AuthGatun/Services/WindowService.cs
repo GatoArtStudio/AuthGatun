@@ -1,9 +1,10 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Linq;
 using AuthGatun.Core.AvaloniaUI;
 using AuthGatun.ViewModels;
 using Avalonia.Controls;
 using Avalonia.Input.Platform;
+using Avalonia.Platform.Storage;
 
 namespace AuthGatun.Services;
 
@@ -42,5 +43,10 @@ public class WindowService : IWindowService
     {
         var currentWindow = CurrentWindow();
         return currentWindow?.Clipboard;
+    }
+
+    public IStorageProvider? GetStorageProvider()
+    {
+        return CurrentWindow()?.StorageProvider;
     }
 }

@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Concurrent;
 using AuthGatun.Domains.IdentityAccess.Application.Ports.Outbound;
-using AuthGatun.Domains.IdentityAccess.Adapters.Outbound.Persistence;
-using AuthGatun.Domains.IdentityAccess.Adapters.Outbound.Persistence;
 
 namespace AuthGatun.Domains.IdentityAccess.Adapters.Outbound.Persistence;
 
@@ -10,10 +8,12 @@ public class RepositoryFactory
 {
     private readonly ConcurrentDictionary<TypeRepository, IUserRepository> _repositories = new();
     private readonly RepositoryOptions _options;
+    private readonly SqlCipherVault _vault;
 
-    public RepositoryFactory(RepositoryOptions options)
+    public RepositoryFactory(RepositoryOptions options, SqlCipherVault vault)
     {
         _options = options ?? throw new ArgumentNullException(nameof(options));
+        _vault = vault ?? throw new ArgumentNullException(nameof(vault));
     }
     
     public IUserRepository CreateRepository()
@@ -39,7 +39,7 @@ public class RepositoryFactory
                 return existingRepository;
             }
             
-            IUserRepository sqLiteRepository = new SqLiteRepository(_options);
+            IUserRepository sqLiteRepository = new SqLiteRepository(_vault);
             _repositories.TryAdd(TypeRepository.SqLite, sqLiteRepository);
             return sqLiteRepository;
         }

@@ -49,11 +49,32 @@
                 Watermark="Usuario"
                 Classes="default"/>
             <TextBox
+                IsVisible="{Binding IsLoginMode}"
                 Text="{Binding Password, Mode=TwoWay}"
                 Watermark="Contraseña"
                 PasswordChar="*"
                 Classes="default"/>
+            <TextBox
+                IsVisible="{Binding IsRecoveryMode}"
+                Text="{Binding RecoveryCode, Mode=TwoWay}"
+                Watermark="Código de recuperación"
+                Classes="default"/>
+            <TextBox
+                IsVisible="{Binding IsRecoveryMode}"
+                Text="{Binding NewPassword, Mode=TwoWay}"
+                Watermark="Nueva contraseña"
+                PasswordChar="*"
+                Classes="default"/>
             <Button
+                IsVisible="{Binding IsRecoveryMode}"
+                Content="Restablecer contraseña"
+                HorizontalContentAlignment="Center"
+                HorizontalAlignment="Stretch"
+                Classes="default"
+                Margin="0,20,0,0"
+                Command="{Binding RecoverAccessCommand}" />
+            <Button
+                IsVisible="{Binding IsLoginMode}"
                 Content="Iniciar Sesión"
                 HorizontalContentAlignment="Center"
                 HorizontalAlignment="Stretch"
@@ -61,6 +82,12 @@
                 Classes="default"
                 Margin="0,20,0,0"
                 Command="{Binding LoginVerificationCommand}" />
+            <Button
+                Content="¿Olvidaste tu contraseña?"
+                HorizontalContentAlignment="Center"
+                HorizontalAlignment="Stretch"
+                Classes="default"
+                Command="{Binding ToggleRecoveryModeCommand}" />
             <Button
                 Content="Registrarse"
                 HorizontalContentAlignment="Center"

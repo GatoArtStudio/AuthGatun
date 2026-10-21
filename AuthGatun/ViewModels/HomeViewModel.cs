@@ -11,6 +11,8 @@ using AuthGatun.Helpers;
 using AuthGatun.Models;
 using AuthGatun.Services;
 using Avalonia.Controls.Notifications;
+using Avalonia.Input.Platform;
+using Avalonia.Threading;
 using ReactiveUI;
 
 namespace AuthGatun.ViewModels;
@@ -26,6 +28,8 @@ public class HomeViewModel : ViewModelBase
     private readonly UserStatusService _userStatusService;
     private readonly NotifyManagerService _notifyManagerService;
     private readonly IWindowService _windowService;
+
+    private static readonly TimeSpan ClipboardClearDelay = TimeSpan.FromSeconds(30);
 
     public ReactiveCommand<Guid, Unit> CopyToClipboardCodeCommand { get; }
     public ReactiveCommand<Guid, Unit> DeleteServiceKeyCommand { get; }
@@ -92,7 +96,19 @@ public class HomeViewModel : ViewModelBase
         
             _notifyManagerService.SendNotifyInWindow($"Código copiado con éxito, código: {code}", title: "Gestor de claves TOTP");
             _ = Task.Run(() => clipboard.SetTextAsync(code));
+            _ = ClearClipboardLaterAsync(clipboard, code);
         }
+    }
+
+    private static async Task ClearClipboardLaterAsync(IClipboard clipboard, string code)
+    {
+        await Task.Delay(ClipboardClearDelay);
+
+        await Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            if (await clipboard.GetTextAsync() == code)
+                await clipboard.ClearAsync();
+        });
     }
 
     private void OnDeleteServiceKeyCommand(Guid id)

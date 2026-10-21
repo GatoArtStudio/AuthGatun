@@ -5,7 +5,7 @@ using AuthGatun.Domains.IdentityAccess.Application.Ports.Outbound;
 
 namespace AuthGatun.Domains.IdentityAccess.Application.UseCases;
 
-public class LoginUseCase(IUserRepository repository, IPasswordHasher passwordHasher) : ILoginUseCase
+public class LoginUseCase(IVaultSession vault, IUserRepository repository) : ILoginUseCase
 {
     public AuthenticatedUser? Execute(string userName, string password)
     {
@@ -15,10 +15,15 @@ public class LoginUseCase(IUserRepository repository, IPasswordHasher passwordHa
         if (string.IsNullOrWhiteSpace(password))
             throw new ArgumentException("The password cannot contain spaces or be null.");
 
-        var user = repository.FromName(userName);
-
-        if (user is null || !passwordHasher.Verify(password, user.Password.Value))
+        if (!vault.Open(userName, password))
             return null;
+
+        var user = repository.FromName(userName);
+        if (user is null)
+        {
+            vault.Close();
+            return null;
+        }
 
         return new AuthenticatedUser(user.Id, user.Username.Value);
     }
