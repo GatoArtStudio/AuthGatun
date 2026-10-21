@@ -17,6 +17,27 @@ public class IdentityAccessUseCasesTest
         public bool Verify(string password, string hashedPassword) => hashedPassword == Hash(password);
     }
 
+    private sealed class FakeVaultSession : IVaultSession
+    {
+        private readonly Dictionary<string, string> _passwords = new();
+        public bool IsOpen { get; private set; }
+        public bool Exists(string userName) => _passwords.ContainsKey(userName);
+
+        public void Create(string userName, string password)
+        {
+            _passwords[userName] = password;
+            IsOpen = true;
+        }
+
+        public bool Open(string userName, string password)
+        {
+            IsOpen = _passwords.TryGetValue(userName, out var stored) && stored == password;
+            return IsOpen;
+        }
+
+        public void Close() => IsOpen = false;
+    }
+
     private sealed class FakePublisher : IDomainEventPublisher
     {
         public List<IDomainEvent> Published { get; } = [];
@@ -31,16 +52,17 @@ public class IdentityAccessUseCasesTest
     private readonly InMemoryRepository _repository = new();
     private readonly FakePublisher _publisher = new();
     private readonly FakePasswordHasher _hasher = new();
+    private readonly FakeVaultSession _vault = new();
 
     private AuthenticatedUser RegisterUser(string name = "gato", string password = "Password-testing") =>
-        new RegisterUserUseCase(_publisher, _repository, _hasher).Execute(name, password);
+        new RegisterUserUseCase(_publisher, _vault, _repository, _hasher).Execute(name, password);
 
     [Fact]
     public void RegisterThenLoginReturnsSameUser()
     {
         var registered = RegisterUser();
 
-        var logged = new LoginUseCase(_repository, _hasher).Execute("gato", "Password-testing");
+        var logged = new LoginUseCase(_vault, _repository).Execute("gato", "Password-testing");
 
         Assert.Equal(registered, logged);
     }
@@ -50,7 +72,18 @@ public class IdentityAccessUseCasesTest
     {
         RegisterUser();
 
-        Assert.Null(new LoginUseCase(_repository, _hasher).Execute("gato", "wrong-password"));
+        Assert.Null(new LoginUseCase(_vault, _repository).Execute("gato", "wrong-password"));
+        Assert.False(_vault.IsOpen);
+    }
+
+    [Fact]
+    public void LogoutClosesTheVault()
+    {
+        RegisterUser();
+
+        new LogoutUseCase(_vault).Execute();
+
+        Assert.False(_vault.IsOpen);
     }
 
     [Fact]
