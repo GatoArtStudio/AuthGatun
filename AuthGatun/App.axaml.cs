@@ -46,6 +46,10 @@ public partial class App : Application
         {
             services.AddSingleton<IPlatformService, PlatformNativeWindowsService>();
         }
+        else
+        {
+            services.AddSingleton<IPlatformService, PlatformFallbackService>();
+        }
         
         // View models, They implement ViewModelBase
         services.AddTransient<LoginWindowViewModel>();
