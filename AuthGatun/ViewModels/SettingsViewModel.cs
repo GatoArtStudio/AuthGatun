@@ -37,6 +37,7 @@ public class SettingsViewModel : ViewModelBase
     private string _repeatPassword = "";
     private string _recoveryCode = "";
     private AutoLockOption _selectedAutoLock;
+    private bool _runInBackground;
     private string _exportPassword = "";
     private string _importPassword = "";
 
@@ -68,6 +69,18 @@ public class SettingsViewModel : ViewModelBase
 
     public IReadOnlyList<AutoLockOption> AutoLockOptions { get; } =
         AppSettings.AllowedAutoLockMinutes.Select(minutes => new AutoLockOption(minutes)).ToList();
+
+    public bool RunInBackground
+    {
+        get => _runInBackground;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _runInBackground, value);
+            OnRunInBackgroundChanged(value);
+        }
+    }
+
+    public bool ShowLinuxTrayNote { get; } = OperatingSystem.IsLinux();
 
     public AutoLockOption SelectedAutoLock
     {
@@ -108,6 +121,7 @@ public class SettingsViewModel : ViewModelBase
     )
     {
         _settingsState = settingsState;
+        _runInBackground = settingsState.Current.RunInBackground;
         _selectedAutoLock = AutoLockOptions.First(option => option.Minutes == settingsState.Current.AutoLockMinutes);
         _changePassword = changePassword;
         _regenerateRecoveryCode = regenerateRecoveryCode;
@@ -251,6 +265,14 @@ public class SettingsViewModel : ViewModelBase
         {
             Notify(e.Message, NotificationType.Error);
         }
+    }
+
+    private void OnRunInBackgroundChanged(bool runInBackground)
+    {
+        if (runInBackground == _settingsState.Current.RunInBackground)
+            return;
+
+        _settingsState.Update(_settingsState.Current with { RunInBackground = runInBackground });
     }
 
     private void OnAutoLockChanged(AutoLockOption option)

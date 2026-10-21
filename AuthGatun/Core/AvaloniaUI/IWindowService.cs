@@ -10,6 +10,7 @@ public interface IWindowService
     void Register(ViewModelBase viewModel, Window window);
     void Unregister(ViewModelBase viewModel);
     void Close(ViewModelBase viewModel);
+    bool IsForceClosing(Window window);
     Window? CurrentWindow();
     IClipboard? GetClipboard();
     IStorageProvider? GetStorageProvider();

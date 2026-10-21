@@ -40,6 +40,7 @@ public partial class App : Application
         );
         services.AddSettingsDomain(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
         services.AddSingleton<AppSettingsState>();
+        services.AddSingleton<IBackgroundModeService, BackgroundModeService>();
         services.AddSingleton<DiscordService>();
         services.AddSingleton<IWindowService, WindowService>();
         services.AddSingleton<NotifyManagerService>();
@@ -93,6 +94,7 @@ public partial class App : Application
             var discordService = ServiceProvider.GetRequiredService<DiscordService>();
             
             desktop.MainWindow = loginWindow;
+            ServiceProvider.GetRequiredService<IBackgroundModeService>().Apply();
             discordService.UpdatePresence();
         }
 
