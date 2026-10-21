@@ -1,4 +1,4 @@
-namespace AuthGatun.Domains.IdentityAccess.Infrastructure.Enums;
+namespace AuthGatun.Domains.IdentityAccess.Adapters.Outbound.Persistence;
 
 public enum TypeRepository
 {

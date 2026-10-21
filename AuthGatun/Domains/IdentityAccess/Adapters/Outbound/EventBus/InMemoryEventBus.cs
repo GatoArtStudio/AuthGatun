@@ -1,9 +1,10 @@
+using AuthGatun.Domains.IdentityAccess.Application.Ports.Outbound;
 using System;
 using System.Collections.Generic;
-using AuthGatun.Domains.IdentityAccess.Application.Ports.In;
+using AuthGatun.Domains.IdentityAccess.Application.Ports.Inbound;
 using AuthGatun.Domains.IdentityAccess.Domain.Event;
 
-namespace AuthGatun.Domains.IdentityAccess.Infrastructure.Eventbus.Buses;
+namespace AuthGatun.Domains.IdentityAccess.Adapters.Outbound.EventBus;
 
 public class InMemoryEventBus : IDomainEventBus
 {

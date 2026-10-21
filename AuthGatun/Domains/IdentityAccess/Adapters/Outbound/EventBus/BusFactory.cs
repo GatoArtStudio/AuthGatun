@@ -1,10 +1,10 @@
+using AuthGatun.Domains.IdentityAccess.Application.Ports.Outbound;
 using System.Collections.Concurrent;
 using AuthGatun.Domains.IdentityAccess.Domain.Event;
-using AuthGatun.Domains.IdentityAccess.Infrastructure.Enums;
-using AuthGatun.Domains.IdentityAccess.Infrastructure.Eventbus.Buses;
-using AuthGatun.Domains.IdentityAccess.Infrastructure.Eventbus.Model;
+using AuthGatun.Domains.IdentityAccess.Adapters.Outbound.EventBus;
+using AuthGatun.Domains.IdentityAccess.Adapters.Outbound.EventBus;
 
-namespace AuthGatun.Domains.IdentityAccess.Infrastructure.Eventbus;
+namespace AuthGatun.Domains.IdentityAccess.Adapters.Outbound.EventBus;
 
 public class BusFactory
 {

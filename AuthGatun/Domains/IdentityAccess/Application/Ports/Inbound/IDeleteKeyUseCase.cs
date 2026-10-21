@@ -1,8 +1,8 @@
-using AuthGatun.Domains.IdentityAccess.Domain.Model;
+using System;
 
-namespace AuthGatun.Domains.IdentityAccess.Application.Ports.In.UseCases;
+namespace AuthGatun.Domains.IdentityAccess.Application.Ports.Inbound;
 
 public interface IDeleteKeyUseCase
 {
-    void Execute(Key key);
+    bool Execute(Guid keyId);
 }

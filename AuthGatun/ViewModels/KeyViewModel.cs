@@ -1,10 +1,7 @@
 using System;
 using System.Reactive;
-using AuthGatun.Domains.IdentityAccess.Application.Ports.In.UseCases;
-using AuthGatun.Domains.IdentityAccess.Application.UseCases;
-using AuthGatun.Domains.IdentityAccess.Domain.Model;
-using AuthGatun.Domains.IdentityAccess.Infrastructure.Eventbus;
-using AuthGatun.Domains.IdentityAccess.Infrastructure.Persistence;
+using AuthGatun.Domains.IdentityAccess.Application.Ports.Inbound;
+using AuthGatun.Domains.IdentityAccess.Application.Models;
 using AuthGatun.Services;
 using Avalonia.Controls.Notifications;
 using ReactiveUI;
@@ -37,20 +34,19 @@ public class KeyViewModel : ViewModelBase
 
     public KeyViewModel(
         DiscordService discordService,
-        RepositoryFactory repositoryFactory,
-        BusFactory busFactory,
+        INewKeyUseCase newKey,
         NotifyManagerService notifyManagerService,
         UserStatusService userStatusService
     )
     {
         _userStatusService = userStatusService;
         _notifyManagerService = notifyManagerService;
-        _newKey = new NewKeyUseCase(busFactory.CreateBus(), repositoryFactory.CreateRepository());
+        _newKey = newKey;
 
         SaveKeyCommand = ReactiveCommand.Create(OnSaveKeyCommand);
         
         var user = _userStatusService.User;
-        discordService.UpdatePresence(user?.Username.Value ?? "AuthGatun", "Agregemos una nueva clave TOTP!.");
+        discordService.UpdatePresence(user?.UserName ?? "AuthGatun", "Agregemos una nueva clave TOTP!.");
     }
 
     private void OnSaveKeyCommand()
@@ -76,7 +72,7 @@ public class KeyViewModel : ViewModelBase
 
         try
         {
-            _newKey.Execute(new Key(Guid.NewGuid(), user.Id, ServiceName, TotpKey));
+            _newKey.Execute(new NewKeyRequest(user.Id, ServiceName, TotpKey));
             _notifyManagerService.SendNotifyInWindow("Clave guardada con éxito", title: "Gestor TOTP", NotificationType.Success);
         }
         catch (Exception e)

@@ -1,5 +1,4 @@
-using AuthGatun.Domains.IdentityAccess.Infrastructure.Enums;
 
-namespace AuthGatun.Domains.IdentityAccess.Infrastructure.Eventbus.Model;
+namespace AuthGatun.Domains.IdentityAccess.Adapters.Outbound.EventBus;
 
 public record BusOptions(TypeBus Type);

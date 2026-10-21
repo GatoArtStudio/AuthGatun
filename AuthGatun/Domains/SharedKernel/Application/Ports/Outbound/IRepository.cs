@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace AuthGatun.Domains.SharedKernel.Domain.Repository;
+namespace AuthGatun.Domains.SharedKernel.Application.Ports.Outbound;
 
 public interface IRepository<TId, TEntity>
 {

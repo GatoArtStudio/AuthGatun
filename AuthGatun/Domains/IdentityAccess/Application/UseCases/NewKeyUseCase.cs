@@ -1,23 +1,23 @@
 using System;
-using AuthGatun.Domains.IdentityAccess.Application.Ports.In.UseCases;
-using AuthGatun.Domains.IdentityAccess.Application.Ports.Out;
-using AuthGatun.Domains.IdentityAccess.Application.UseCases.Abstract;
+using AuthGatun.Domains.IdentityAccess.Application.Models;
+using AuthGatun.Domains.IdentityAccess.Application.Ports.Inbound;
+using AuthGatun.Domains.IdentityAccess.Application.Ports.Outbound;
 using AuthGatun.Domains.IdentityAccess.Domain.Model;
 
 namespace AuthGatun.Domains.IdentityAccess.Application.UseCases;
 
-public class NewKeyUseCase(IDomainEventPublisher publisher, IUserRepository repository)
-    : UseCase(publisher, repository), INewKeyUseCase
+public class NewKeyUseCase(IDomainEventPublisher publisher, IUserRepository repository) : INewKeyUseCase
 {
-    public void Execute(Key key)
+    public void Execute(NewKeyRequest request)
     {
-        var user = Repository.Read(key.UserId);
+        var user = repository.Read(request.UserId);
         if (user is null) throw new Exception("IdentityAccess not found");
-        
-        user.AddKey(key);
-        Repository.Save(user);
-        
-        user.UncommittedEvents.ForEach(Publisher.Publish);
+
+        user.AddKey(new Key(Guid.NewGuid(), request.UserId, request.ServiceName, request.SecretKey));
+        repository.Save(user);
+
+        foreach (var domainEvent in user.UncommittedEvents)
+            publisher.Publish(domainEvent);
         user.ClearEvents();
     }
 }

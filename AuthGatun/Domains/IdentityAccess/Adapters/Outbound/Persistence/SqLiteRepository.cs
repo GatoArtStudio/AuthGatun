@@ -5,13 +5,13 @@ using System.Data.SQLite;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using AuthGatun.Domains.IdentityAccess.Application.Ports.Out;
+using AuthGatun.Domains.IdentityAccess.Application.Ports.Outbound;
 using AuthGatun.Domains.IdentityAccess.Domain.Aggregate;
 using AuthGatun.Domains.IdentityAccess.Domain.Model;
 using AuthGatun.Domains.IdentityAccess.Domain.ValueObject;
-using AuthGatun.Domains.IdentityAccess.Infrastructure.Persistence.Model;
+using AuthGatun.Domains.IdentityAccess.Adapters.Outbound.Persistence;
 
-namespace AuthGatun.Domains.IdentityAccess.Infrastructure.Persistence.Repositories;
+namespace AuthGatun.Domains.IdentityAccess.Adapters.Outbound.Persistence;
 
 public class SqLiteRepository : IUserRepository
 {

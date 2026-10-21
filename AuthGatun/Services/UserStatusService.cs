@@ -1,8 +1,8 @@
-using AuthGatun.Domains.IdentityAccess.Domain.Aggregate;
+using AuthGatun.Domains.IdentityAccess.Application.Models;
 
 namespace AuthGatun.Services;
 
 public class UserStatusService
 {
-    public User? User { get; set; }
+    public AuthenticatedUser? User { get; set; }
 }

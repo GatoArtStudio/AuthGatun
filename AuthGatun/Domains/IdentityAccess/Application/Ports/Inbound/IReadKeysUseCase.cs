@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using AuthGatun.Domains.IdentityAccess.Domain.Model;
+using AuthGatun.Domains.IdentityAccess.Application.Models;
 
-namespace AuthGatun.Domains.IdentityAccess.Application.Ports.In.UseCases;
+namespace AuthGatun.Domains.IdentityAccess.Application.Ports.Inbound;
 
 public interface IReadKeysUseCase
 {
-    List<Key> Execute(Guid userId);
+    IReadOnlyList<KeySummary> Execute(Guid userId);
 }

@@ -3,11 +3,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using AuthGatun.Core.AvaloniaUI;
-using AuthGatun.Domains.IdentityAccess.Application.Ports.In.UseCases;
-using AuthGatun.Domains.IdentityAccess.Application.UseCases;
-using AuthGatun.Domains.IdentityAccess.Infrastructure.Eventbus;
-using AuthGatun.Domains.IdentityAccess.Infrastructure.Persistence;
-using AuthGatun.Domains.IdentityAccess.Infrastructure.Services;
+using AuthGatun.Domains.IdentityAccess.Application.Ports.Inbound;
 using AuthGatun.Services;
 using AuthGatun.Views;
 using CommunityToolkit.Mvvm.Input;
@@ -18,15 +14,12 @@ public class LoginWindowViewModel(
     IViewModelFactory viewModelFactory,
     IWindowFactory windowFactory,
     DiscordService discordService,
-    RepositoryFactory repositoryFactory,
-    BusFactory busFactory,
+    ILoginUseCase login,
     IWindowService windowService,
     UserStatusService userStatusService
 ) : ViewModelBase
 {
     public event PropertyChangedEventHandler? PropertyChanged;
-    private readonly ILoginUseCase _login = new LoginUseCase(busFactory.CreateBus(),
-        repositoryFactory.CreateRepository(), new Argon2PasswordHasher());
 
     private string _username = "";
     private string _password = "";
@@ -66,7 +59,7 @@ public class LoginWindowViewModel(
             Messagestatus = "La contraseña no puede ser nula o contener espacios";
         }
         
-        var userLogin = _login.Execute(Username, Password);
+        var userLogin = login.Execute(Username, Password);
         if (userLogin is null)
         {
             Messagestatus = "Usuario incorrecto o contraseña invalidad";

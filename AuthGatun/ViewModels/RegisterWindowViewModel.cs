@@ -4,12 +4,8 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using AuthGatun.Core.AvaloniaUI;
-using AuthGatun.Domains.IdentityAccess.Application.Ports.In.UseCases;
-using AuthGatun.Domains.IdentityAccess.Application.UseCases;
-using AuthGatun.Domains.IdentityAccess.Domain.Aggregate;
-using AuthGatun.Domains.IdentityAccess.Infrastructure.Eventbus;
-using AuthGatun.Domains.IdentityAccess.Infrastructure.Persistence;
-using AuthGatun.Domains.IdentityAccess.Infrastructure.Services;
+using AuthGatun.Domains.IdentityAccess.Application.Ports.Inbound;
+using AuthGatun.Domains.IdentityAccess.Application.Models;
 using AuthGatun.Services;
 using AuthGatun.Views;
 using CommunityToolkit.Mvvm.Input;
@@ -20,16 +16,12 @@ public class RegisterWindowViewModel(
     IViewModelFactory viewModelFactory,
     IWindowFactory windowFactory,
     DiscordService discordService,
-    RepositoryFactory repositoryFactory,
-    BusFactory busFactory,
+    IRegisterUseCase register,
     IWindowService windowService,
     UserStatusService userStatusService
 ) : ViewModelBase
 {
     public event PropertyChangedEventHandler? PropertyChanged;
-
-    private readonly IRegisterUseCase _register = new RegisterUserCase(busFactory.CreateBus(),
-        repositoryFactory.CreateRepository(), new Argon2PasswordHasher());
 
     private string _username = "";
     private string _newpassword = "";
@@ -97,7 +89,7 @@ public class RegisterWindowViewModel(
 
         try
         {
-            User newUser = _register.Execute(Username, Newpassword);
+            AuthenticatedUser newUser = register.Execute(Username, Newpassword);
             userStatusService.User = newUser;
             
             var mainViewModel = viewModelFactory.Create<MainWindowViewModel>();

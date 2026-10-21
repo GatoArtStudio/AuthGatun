@@ -1,4 +1,4 @@
-namespace AuthGatun.Domains.IdentityAccess.Application.Ports.Out;
+namespace AuthGatun.Domains.IdentityAccess.Application.Ports.Outbound;
 
 public interface IPasswordHasher
 {

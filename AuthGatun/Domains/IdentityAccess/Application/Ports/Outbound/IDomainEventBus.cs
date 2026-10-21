@@ -1,7 +1,7 @@
-using AuthGatun.Domains.IdentityAccess.Application.Ports.In;
-using AuthGatun.Domains.IdentityAccess.Application.Ports.Out;
+using AuthGatun.Domains.IdentityAccess.Application.Ports.Inbound;
+using AuthGatun.Domains.IdentityAccess.Domain.Event;
 
-namespace AuthGatun.Domains.IdentityAccess.Domain.Event;
+namespace AuthGatun.Domains.IdentityAccess.Application.Ports.Outbound;
 
 public interface IDomainEventBus : IDomainEventPublisher
 {

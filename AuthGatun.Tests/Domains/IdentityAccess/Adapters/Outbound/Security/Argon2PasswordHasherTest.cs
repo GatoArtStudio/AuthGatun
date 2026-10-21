@@ -1,9 +1,9 @@
-using AuthGatun.Domains.IdentityAccess.Application.Ports.Out;
-using AuthGatun.Domains.IdentityAccess.Infrastructure.Services;
+using AuthGatun.Domains.IdentityAccess.Application.Ports.Outbound;
+using AuthGatun.Domains.IdentityAccess.Adapters.Outbound.Security;
 using JetBrains.Annotations;
 using Xunit;
 
-namespace AuthGatun.Tests.Domains.IdentityAccess.Infrastructure.Services;
+namespace AuthGatun.Tests.Domains.IdentityAccess.Adapters.Outbound.Security;
 
 [TestSubject(typeof(Argon2PasswordHasher))]
 public class Argon2PasswordHasherTest

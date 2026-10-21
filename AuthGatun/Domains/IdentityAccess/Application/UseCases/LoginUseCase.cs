@@ -1,30 +1,25 @@
 using System;
-using AuthGatun.Domains.IdentityAccess.Application.Ports.In.UseCases;
-using AuthGatun.Domains.IdentityAccess.Application.Ports.Out;
-using AuthGatun.Domains.IdentityAccess.Application.UseCases.Abstract;
-using AuthGatun.Domains.IdentityAccess.Domain.Aggregate;
+using AuthGatun.Domains.IdentityAccess.Application.Models;
+using AuthGatun.Domains.IdentityAccess.Application.Ports.Inbound;
+using AuthGatun.Domains.IdentityAccess.Application.Ports.Outbound;
 
 namespace AuthGatun.Domains.IdentityAccess.Application.UseCases;
 
-public class LoginUseCase(IDomainEventPublisher publisher, IUserRepository repository, IPasswordHasher passwordHasher)
-    : UseCase(publisher, repository), ILoginUseCase
+public class LoginUseCase(IUserRepository repository, IPasswordHasher passwordHasher) : ILoginUseCase
 {
-    private readonly IPasswordHasher _passwordHasher = passwordHasher ?? throw new ArgumentNullException(nameof(passwordHasher), "The password hasher cannot be null.");
-
-    public User? Execute(string userName, string password)
+    public AuthenticatedUser? Execute(string userName, string password)
     {
         if (string.IsNullOrWhiteSpace(userName))
-            throw new ArgumentException( "The username cannot contain spaces or be null.");
+            throw new ArgumentException("The username cannot contain spaces or be null.");
 
         if (string.IsNullOrWhiteSpace(password))
             throw new ArgumentException("The password cannot contain spaces or be null.");
 
-        var user = Repository.FromName(userName);
+        var user = repository.FromName(userName);
 
-        if (user is null)
+        if (user is null || !passwordHasher.Verify(password, user.Password.Value))
             return null;
 
-        var passwordIsValid = _passwordHasher.Verify(password, user.Password.Value);
-        return passwordIsValid ? user : null;
+        return new AuthenticatedUser(user.Id, user.Username.Value);
     }
 }

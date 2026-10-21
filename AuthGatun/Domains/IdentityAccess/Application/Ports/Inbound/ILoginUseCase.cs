@@ -1,8 +1,8 @@
-using AuthGatun.Domains.IdentityAccess.Domain.Aggregate;
+using AuthGatun.Domains.IdentityAccess.Application.Models;
 
-namespace AuthGatun.Domains.IdentityAccess.Application.Ports.In.UseCases;
+namespace AuthGatun.Domains.IdentityAccess.Application.Ports.Inbound;
 
 public interface ILoginUseCase
 {
-    User? Execute(string userName, string password);
+    AuthenticatedUser? Execute(string userName, string password);
 }

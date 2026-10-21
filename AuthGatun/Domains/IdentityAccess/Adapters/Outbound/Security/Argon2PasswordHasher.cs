@@ -1,10 +1,10 @@
 using System;
 using System.Security.Cryptography;
 using System.Text;
-using AuthGatun.Domains.IdentityAccess.Application.Ports.Out;
+using AuthGatun.Domains.IdentityAccess.Application.Ports.Outbound;
 using Konscious.Security.Cryptography;
 
-namespace AuthGatun.Domains.IdentityAccess.Infrastructure.Services;
+namespace AuthGatun.Domains.IdentityAccess.Adapters.Outbound.Security;
 
 public class Argon2PasswordHasher : IPasswordHasher
 {

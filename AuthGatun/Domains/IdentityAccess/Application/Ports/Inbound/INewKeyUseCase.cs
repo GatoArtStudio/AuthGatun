@@ -1,8 +1,8 @@
-using AuthGatun.Domains.IdentityAccess.Domain.Model;
+using AuthGatun.Domains.IdentityAccess.Application.Models;
 
-namespace AuthGatun.Domains.IdentityAccess.Application.Ports.In.UseCases;
+namespace AuthGatun.Domains.IdentityAccess.Application.Ports.Inbound;
 
 public interface INewKeyUseCase
 {
-    void Execute(Key key);
+    void Execute(NewKeyRequest request);
 }

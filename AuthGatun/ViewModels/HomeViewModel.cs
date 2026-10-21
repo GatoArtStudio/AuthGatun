@@ -5,11 +5,8 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using AuthGatun.Core.AvaloniaUI;
-using AuthGatun.Domains.IdentityAccess.Application.Ports.In.UseCases;
-using AuthGatun.Domains.IdentityAccess.Application.UseCases;
-using AuthGatun.Domains.IdentityAccess.Domain.Model;
-using AuthGatun.Domains.IdentityAccess.Infrastructure.Eventbus;
-using AuthGatun.Domains.IdentityAccess.Infrastructure.Persistence;
+using AuthGatun.Domains.IdentityAccess.Application.Ports.Inbound;
+using AuthGatun.Domains.IdentityAccess.Application.Models;
 using AuthGatun.Helpers;
 using AuthGatun.Models;
 using AuthGatun.Services;
@@ -22,11 +19,10 @@ public class HomeViewModel : ViewModelBase
 {
     public ObservableCollection<UserKey> UserKeys { get; set; }
     
-    private readonly IReadKeyUseCase _readKey;
     private readonly IReadKeysUseCase _readKeys;
     private readonly IDeleteKeyUseCase _deleteKey;
+    private readonly IGenerateTotpCodeUseCase _generateTotpCode;
     
-    private readonly TotpManagerService _totpManagerService;
     private readonly UserStatusService _userStatusService;
     private readonly NotifyManagerService _notifyManagerService;
     private readonly IWindowService _windowService;
@@ -36,8 +32,9 @@ public class HomeViewModel : ViewModelBase
 
     public HomeViewModel(
         DiscordService discordService,
-        RepositoryFactory repositoryFactory,
-        BusFactory busFactory,
+        IReadKeysUseCase readKeys,
+        IDeleteKeyUseCase deleteKey,
+        IGenerateTotpCodeUseCase generateTotpCode,
         NotifyManagerService notifyManagerService,
         UserStatusService userStatusService,
         IWindowService windowService
@@ -46,20 +43,16 @@ public class HomeViewModel : ViewModelBase
         _notifyManagerService = notifyManagerService;
         _userStatusService = userStatusService;
         _windowService = windowService;
-        var repository = repositoryFactory.CreateRepository();
-        var bus = busFactory.CreateBus();
-        _readKey = new ReadKeyUseCase(bus, repository);
-        _readKeys = new ReadKeysUseCase(bus, repository);
-        _deleteKey = new DeleteKeyUseCase(bus, repository);
-        
-        _totpManagerService = new TotpManagerService();
+        _readKeys = readKeys;
+        _deleteKey = deleteKey;
+        _generateTotpCode = generateTotpCode;
 
         CopyToClipboardCodeCommand = ReactiveCommand.CreateFromTask<Guid>(OnCopyToClipboardCodeCommand);
         DeleteServiceKeyCommand = ReactiveCommand.Create<Guid>(OnDeleteServiceKeyCommand, Observable.Return(true));
 
         UserKeys = GetUserKeys();
         var user = _userStatusService.User;
-        discordService.UpdatePresence(user?.Username.Value ?? "AuthGatun", "Observando las claves TOTP.");
+        discordService.UpdatePresence(user?.UserName ?? "AuthGatun", "Observando las claves TOTP.");
     }
 
     private ObservableCollection<UserKey> GetUserKeys()
@@ -70,7 +63,7 @@ public class HomeViewModel : ViewModelBase
         if (user is null)
             return userKeys;
 
-        foreach (Key key in _readKeys.Execute(user.Id))
+        foreach (KeySummary key in _readKeys.Execute(user.Id))
         {
             userKeys.Add(
                 new UserKey(
@@ -90,14 +83,12 @@ public class HomeViewModel : ViewModelBase
         
         if (clipboard != null)
         {
-            var key = _readKey.Execute(id);
-            if (key == null)
+            string? code = _generateTotpCode.Execute(id);
+            if (code == null)
             {
                 _notifyManagerService.SendNotifyInWindow("Clave no encontrada", title: "Gestor de claves TOTP", NotificationType.Error);
                 return;
             }
-            
-            string code = _totpManagerService.GetTotpCode(key.SecretKey);
         
             _notifyManagerService.SendNotifyInWindow($"Código copiado con éxito, código: {code}", title: "Gestor de claves TOTP");
             _ = Task.Run(() => clipboard.SetTextAsync(code));
@@ -106,14 +97,12 @@ public class HomeViewModel : ViewModelBase
 
     private void OnDeleteServiceKeyCommand(Guid id)
     {
-        var key = _readKey.Execute(id);
-        if (key == null)
+        if (!_deleteKey.Execute(id))
         {
             _notifyManagerService.SendNotifyInWindow("Clave no encontrada", title: "Gestor de claves TOTP", NotificationType.Error);
             return;
         }
         
-        _deleteKey.Execute(key);
         _notifyManagerService.SendNotifyInWindow("Clave eliminada con éxito", title: "Gestor de claves TOTP");
 
         UserKey? userKey = UserKeys

@@ -1,11 +1,9 @@
 using System;
 using AuthGatun.Core.AvaloniaUI;
 using AuthGatun.Core.Platform;
-using AuthGatun.Domains.IdentityAccess.Infrastructure.Enums;
-using AuthGatun.Domains.IdentityAccess.Infrastructure.Eventbus;
-using AuthGatun.Domains.IdentityAccess.Infrastructure.Eventbus.Model;
-using AuthGatun.Domains.IdentityAccess.Infrastructure.Persistence;
-using AuthGatun.Domains.IdentityAccess.Infrastructure.Persistence.Model;
+using AuthGatun.Domains.IdentityAccess;
+using AuthGatun.Domains.IdentityAccess.Adapters.Outbound.EventBus;
+using AuthGatun.Domains.IdentityAccess.Adapters.Outbound.Persistence;
 using AuthGatun.Factories;
 using AuthGatun.Services;
 using Avalonia;
@@ -27,21 +25,18 @@ public partial class App : Application
 
         var services = new ServiceCollection();
         
-        // Other Domains
-        services.AddSingleton(new RepositoryOptions(
-            TypeRepository.SqLite, // Change this to TypeRepository.SqLite for SQLite));
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), // Use the base directory of the application
-            null, // DbHost
-            null, // DbPort
-            null, // DbDatabase
-            null, // DbUser
-            null  // DbPassword
-        ));
-        services.AddSingleton<RepositoryFactory>();
-        services.AddSingleton(new BusOptions(
-            TypeBus.Default
-        ));
-        services.AddSingleton<BusFactory>();
+        services.AddIdentityAccessDomain(
+            new RepositoryOptions(
+                TypeRepository.SqLite,
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                null,
+                null,
+                null,
+                null,
+                null
+            ),
+            new BusOptions(TypeBus.Default)
+        );
         services.AddSingleton<DiscordService>();
         services.AddSingleton<IWindowService, WindowService>();
         services.AddSingleton<NotifyManagerService>();

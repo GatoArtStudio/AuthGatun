@@ -3,10 +3,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using AuthGatun.Domains.IdentityAccess.Application.Ports.Out;
+using AuthGatun.Domains.IdentityAccess.Application.Ports.Outbound;
 using AuthGatun.Domains.IdentityAccess.Domain.Aggregate;
 
-namespace AuthGatun.Domains.IdentityAccess.Infrastructure.Persistence.Repositories;
+namespace AuthGatun.Domains.IdentityAccess.Adapters.Outbound.Persistence;
 
 public class InMemoryRepository : IUserRepository
 {

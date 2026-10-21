@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Concurrent;
-using AuthGatun.Domains.IdentityAccess.Application.Ports.Out;
-using AuthGatun.Domains.IdentityAccess.Infrastructure.Enums;
-using AuthGatun.Domains.IdentityAccess.Infrastructure.Persistence.Model;
-using AuthGatun.Domains.IdentityAccess.Infrastructure.Persistence.Repositories;
+using AuthGatun.Domains.IdentityAccess.Application.Ports.Outbound;
+using AuthGatun.Domains.IdentityAccess.Adapters.Outbound.Persistence;
+using AuthGatun.Domains.IdentityAccess.Adapters.Outbound.Persistence;
 
-namespace AuthGatun.Domains.IdentityAccess.Infrastructure.Persistence;
+namespace AuthGatun.Domains.IdentityAccess.Adapters.Outbound.Persistence;
 
 public class RepositoryFactory
 {
