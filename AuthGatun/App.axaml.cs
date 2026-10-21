@@ -2,6 +2,7 @@ using System;
 using AuthGatun.Core.AvaloniaUI;
 using AuthGatun.Core.Platform;
 using AuthGatun.Domains.IdentityAccess;
+using AuthGatun.Domains.Settings;
 using AuthGatun.Domains.IdentityAccess.Adapters.Outbound.EventBus;
 using AuthGatun.Domains.IdentityAccess.Adapters.Outbound.Persistence;
 using AuthGatun.Factories;
@@ -9,6 +10,7 @@ using AuthGatun.Services;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using AuthGatun.ViewModels;
 using AuthGatun.Views;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,6 +39,9 @@ public partial class App : Application
             ),
             new BusOptions(TypeBus.Default)
         );
+        services.AddSettingsDomain(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
+        services.AddSingleton<AppSettingsState>();
+        services.AddSingleton<IBackgroundModeService, BackgroundModeService>();
         services.AddSingleton<DiscordService>();
         services.AddSingleton<IWindowService, WindowService>();
         services.AddSingleton<NotifyManagerService>();
@@ -90,6 +95,9 @@ public partial class App : Application
             var discordService = ServiceProvider.GetRequiredService<DiscordService>();
             
             desktop.MainWindow = loginWindow;
+            var backgroundMode = ServiceProvider.GetRequiredService<IBackgroundModeService>();
+            backgroundMode.Apply();
+            Program.SingleInstance?.StartListening(() => Dispatcher.UIThread.Post(backgroundMode.ShowCurrent));
             discordService.UpdatePresence();
         }
 

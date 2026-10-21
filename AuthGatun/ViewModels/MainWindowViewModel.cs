@@ -17,6 +17,7 @@ public class MainWindowViewModel : ViewModelBase
     private readonly ILogoutUseCase _logout;
     private readonly UserStatusService _userStatusService;
     private readonly IWindowService _windowService;
+    private readonly IBackgroundModeService _backgroundMode;
     
     public ReactiveCommand<Unit, Unit> ShowHomeViewCommand { get; }
     public ReactiveCommand<Unit, Unit> ShowKeysViewCommand { get; }
@@ -30,7 +31,8 @@ public class MainWindowViewModel : ViewModelBase
         IUserControlFactory userControlFactory,
         ILogoutUseCase logout,
         UserStatusService userStatusService,
-        IWindowService windowService
+        IWindowService windowService,
+        IBackgroundModeService backgroundMode
     )
     {
         _discordService = discordService;
@@ -40,6 +42,7 @@ public class MainWindowViewModel : ViewModelBase
         _logout = logout;
         _userStatusService = userStatusService;
         _windowService = windowService;
+        _backgroundMode = backgroundMode;
         
         ShowHomeViewCommand = ReactiveCommand.Create(ShowHomeView);
         ShowKeysViewCommand = ReactiveCommand.Create(ShowKeysView);
@@ -58,12 +61,15 @@ public class MainWindowViewModel : ViewModelBase
 
     private void Logout()
     {
+        var wasHidden = _backgroundMode.IsHidden;
+
         _logout.Execute();
         _userStatusService.User = null;
 
         var loginViewModel = _viewModelFactory.Create<LoginWindowViewModel>();
         var loginWindow = _windowFactory.Create<LoginWindow, LoginWindowViewModel>(loginViewModel);
-        loginWindow.Show();
+        if (!wasHidden)
+            loginWindow.Show();
 
         _windowService.Close(this);
         _discordService.UpdatePresence("AuthGatun", "Iniciemos sesión!.");

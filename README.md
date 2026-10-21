@@ -12,6 +12,7 @@ La aplicación utiliza Argon2 para el login, asegurando que solo tú puedas acce
 *   **Multiplataforma:** Funciona en Windows y Linux.
 *   **Compilación Nativa (AOT):** Compilado Ahead-Of-Time (AOT) para un rendimiento óptimo y un arranque más rápido.
 *   **Almacenamiento Local:** Utiliza SQLite para almacenar los datos de forma local y segura en tu equipo.
+*   **Segundo plano:** Desde Ajustes puedes mantener la app y tu sesión abiertas al cerrar la ventana (icono de bandeja con *Abrir*, *Cerrar sesión* y *Salir*). Si ejecutas AuthGatun de nuevo, trae al frente la ventana ya abierta. En Linux el icono de bandeja depende del escritorio (en GNOME necesitas la extensión AppIndicator). Con la sesión en segundo plano la clave de tu bóveda permanece en memoria, por eso el bloqueo automático por inactividad (configurable) también cuenta en segundo plano y *Salir* la borra de memoria.
 
 ## Cómo Empezar
 

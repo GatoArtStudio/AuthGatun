@@ -9,7 +9,24 @@
              x:CompileBindings="True">
     <ScrollViewer>
         <StackPanel Margin="20" Spacing="10">
-            <TextBlock Text="Cambiar contraseña" FontSize="20" FontWeight="Bold" />
+            <TextBlock Text="Segundo plano" FontSize="20" FontWeight="Bold" />
+            <ToggleSwitch
+                IsChecked="{Binding RunInBackground, Mode=TwoWay}"
+                OnContent="Mantener la app y la sesión en segundo plano al cerrar la ventana"
+                OffContent="Cerrar la app por completo al cerrar la ventana" />
+            <TextBlock
+                IsVisible="{Binding ShowLinuxTrayNote}"
+                TextWrapping="Wrap"
+                Opacity="0.7"
+                Text="En Linux el icono de bandeja depende del escritorio; en GNOME necesitas la extensión AppIndicator. Si no ves el icono, vuelve a ejecutar AuthGatun para traer la ventana al frente." />
+
+            <TextBlock Text="Bloqueo automático por inactividad" Margin="0,20,0,0" FontSize="20" FontWeight="Bold" />
+            <ComboBox
+                ItemsSource="{Binding AutoLockOptions}"
+                SelectedItem="{Binding SelectedAutoLock, Mode=TwoWay}"
+                HorizontalAlignment="Stretch" />
+
+            <TextBlock Text="Cambiar contraseña" Margin="0,20,0,0" FontSize="20" FontWeight="Bold" />
             <TextBox
                 Text="{Binding CurrentPassword, Mode=TwoWay}"
                 Watermark="Contraseña actual"

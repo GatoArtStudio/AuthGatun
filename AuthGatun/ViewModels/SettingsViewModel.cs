@@ -1,15 +1,23 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reactive;
 using System.Threading.Tasks;
 using AuthGatun.Core.AvaloniaUI;
 using AuthGatun.Domains.IdentityAccess.Application.Ports.Inbound;
+using AuthGatun.Domains.Settings.Domain;
 using AuthGatun.Services;
 using Avalonia.Controls.Notifications;
 using Avalonia.Platform.Storage;
 using ReactiveUI;
 
 namespace AuthGatun.ViewModels;
+
+public record AutoLockOption(int Minutes)
+{
+    public override string ToString() => Minutes == 0 ? "Nunca" : $"{Minutes} min";
+}
 
 public class SettingsViewModel : ViewModelBase
 {
@@ -20,6 +28,7 @@ public class SettingsViewModel : ViewModelBase
     private readonly IExportKeysUseCase _exportKeys;
     private readonly IImportKeysUseCase _importKeys;
     private readonly IWindowService _windowService;
+    private readonly AppSettingsState _settingsState;
     private readonly UserStatusService _userStatusService;
     private readonly NotifyManagerService _notifyManagerService;
 
@@ -27,6 +36,8 @@ public class SettingsViewModel : ViewModelBase
     private string _newPassword = "";
     private string _repeatPassword = "";
     private string _recoveryCode = "";
+    private AutoLockOption _selectedAutoLock;
+    private bool _runInBackground;
     private string _exportPassword = "";
     private string _importPassword = "";
 
@@ -56,6 +67,31 @@ public class SettingsViewModel : ViewModelBase
         private set => this.RaiseAndSetIfChanged(ref _recoveryCode, value);
     }
 
+    public IReadOnlyList<AutoLockOption> AutoLockOptions { get; } =
+        AppSettings.AllowedAutoLockMinutes.Select(minutes => new AutoLockOption(minutes)).ToList();
+
+    public bool RunInBackground
+    {
+        get => _runInBackground;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _runInBackground, value);
+            OnRunInBackgroundChanged(value);
+        }
+    }
+
+    public bool ShowLinuxTrayNote { get; } = OperatingSystem.IsLinux();
+
+    public AutoLockOption SelectedAutoLock
+    {
+        get => _selectedAutoLock;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedAutoLock, value);
+            OnAutoLockChanged(value);
+        }
+    }
+
     public string ExportPassword
     {
         get => _exportPassword;
@@ -79,10 +115,14 @@ public class SettingsViewModel : ViewModelBase
         IExportKeysUseCase exportKeys,
         IImportKeysUseCase importKeys,
         IWindowService windowService,
+        AppSettingsState settingsState,
         UserStatusService userStatusService,
         NotifyManagerService notifyManagerService
     )
     {
+        _settingsState = settingsState;
+        _runInBackground = settingsState.Current.RunInBackground;
+        _selectedAutoLock = AutoLockOptions.First(option => option.Minutes == settingsState.Current.AutoLockMinutes);
         _changePassword = changePassword;
         _regenerateRecoveryCode = regenerateRecoveryCode;
         _exportKeys = exportKeys;
@@ -225,6 +265,23 @@ public class SettingsViewModel : ViewModelBase
         {
             Notify(e.Message, NotificationType.Error);
         }
+    }
+
+    private void OnRunInBackgroundChanged(bool runInBackground)
+    {
+        if (runInBackground == _settingsState.Current.RunInBackground)
+            return;
+
+        _settingsState.Update(_settingsState.Current with { RunInBackground = runInBackground });
+    }
+
+    private void OnAutoLockChanged(AutoLockOption option)
+    {
+        if (option.Minutes == _settingsState.Current.AutoLockMinutes)
+            return;
+
+        _settingsState.Update(_settingsState.Current with { AutoLockMinutes = option.Minutes });
+        Notify("Bloqueo automático actualizado", NotificationType.Success);
     }
 
     private void Notify(string message, NotificationType type) =>
