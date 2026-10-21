@@ -1,8 +1,12 @@
 using System;
+using System.IO;
 using System.Reactive;
+using System.Threading.Tasks;
+using AuthGatun.Core.AvaloniaUI;
 using AuthGatun.Domains.IdentityAccess.Application.Ports.Inbound;
 using AuthGatun.Services;
 using Avalonia.Controls.Notifications;
+using Avalonia.Platform.Storage;
 using ReactiveUI;
 
 namespace AuthGatun.ViewModels;
@@ -13,6 +17,9 @@ public class SettingsViewModel : ViewModelBase
 
     private readonly IChangePasswordUseCase _changePassword;
     private readonly IRegenerateRecoveryCodeUseCase _regenerateRecoveryCode;
+    private readonly IExportKeysUseCase _exportKeys;
+    private readonly IImportKeysUseCase _importKeys;
+    private readonly IWindowService _windowService;
     private readonly UserStatusService _userStatusService;
     private readonly NotifyManagerService _notifyManagerService;
 
@@ -20,6 +27,10 @@ public class SettingsViewModel : ViewModelBase
     private string _newPassword = "";
     private string _repeatPassword = "";
     private string _recoveryCode = "";
+    private string _exportPassword = "";
+    private string _importPassword = "";
+
+    private static readonly FilePickerFileType BackupFileType = new("AuthGatun backup") { Patterns = ["*.authgatun"] };
 
     public string CurrentPassword
     {
@@ -45,23 +56,45 @@ public class SettingsViewModel : ViewModelBase
         private set => this.RaiseAndSetIfChanged(ref _recoveryCode, value);
     }
 
+    public string ExportPassword
+    {
+        get => _exportPassword;
+        set => this.RaiseAndSetIfChanged(ref _exportPassword, value);
+    }
+
+    public string ImportPassword
+    {
+        get => _importPassword;
+        set => this.RaiseAndSetIfChanged(ref _importPassword, value);
+    }
+
+    public ReactiveCommand<Unit, Unit> ExportKeysCommand { get; }
+    public ReactiveCommand<Unit, Unit> ImportKeysCommand { get; }
     public ReactiveCommand<Unit, Unit> ChangePasswordCommand { get; }
     public ReactiveCommand<Unit, Unit> RegenerateRecoveryCodeCommand { get; }
 
     public SettingsViewModel(
         IChangePasswordUseCase changePassword,
         IRegenerateRecoveryCodeUseCase regenerateRecoveryCode,
+        IExportKeysUseCase exportKeys,
+        IImportKeysUseCase importKeys,
+        IWindowService windowService,
         UserStatusService userStatusService,
         NotifyManagerService notifyManagerService
     )
     {
         _changePassword = changePassword;
         _regenerateRecoveryCode = regenerateRecoveryCode;
+        _exportKeys = exportKeys;
+        _importKeys = importKeys;
+        _windowService = windowService;
         _userStatusService = userStatusService;
         _notifyManagerService = notifyManagerService;
 
         ChangePasswordCommand = ReactiveCommand.Create(OnChangePassword);
         RegenerateRecoveryCodeCommand = ReactiveCommand.Create(OnRegenerateRecoveryCode);
+        ExportKeysCommand = ReactiveCommand.CreateFromTask(OnExportKeys);
+        ImportKeysCommand = ReactiveCommand.CreateFromTask(OnImportKeys);
     }
 
     private void OnChangePassword()
@@ -109,6 +142,89 @@ public class SettingsViewModel : ViewModelBase
     {
         RecoveryCode = _regenerateRecoveryCode.Execute();
         Notify("Nuevo código de recuperación generado, el anterior ya no sirve", NotificationType.Success);
+    }
+
+    private async Task OnExportKeys()
+    {
+        var user = _userStatusService.User;
+        var storage = _windowService.GetStorageProvider();
+        if (user is null || storage is null)
+        {
+            Notify("No se pudo abrir el selector de archivos", NotificationType.Error);
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(ExportPassword) || ExportPassword.Length < 8)
+        {
+            Notify("La contraseña del respaldo debe tener al menos 8 caracteres", NotificationType.Error);
+            return;
+        }
+
+        try
+        {
+            var backup = _exportKeys.Execute(user.Id, ExportPassword);
+
+            var file = await storage.SaveFilePickerAsync(new FilePickerSaveOptions
+            {
+                Title = "Exportar claves",
+                SuggestedFileName = "authgatun-backup",
+                DefaultExtension = "authgatun",
+                FileTypeChoices = [BackupFileType]
+            });
+            if (file is null) return;
+
+            await using var stream = await file.OpenWriteAsync();
+            stream.SetLength(0);
+            await stream.WriteAsync(backup);
+
+            ExportPassword = "";
+            Notify("Respaldo exportado con éxito", NotificationType.Success);
+        }
+        catch (Exception e) when (e is ArgumentException or IOException or UnauthorizedAccessException)
+        {
+            Notify(e.Message, NotificationType.Error);
+        }
+    }
+
+    private async Task OnImportKeys()
+    {
+        var user = _userStatusService.User;
+        var storage = _windowService.GetStorageProvider();
+        if (user is null || storage is null)
+        {
+            Notify("No se pudo abrir el selector de archivos", NotificationType.Error);
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(ImportPassword))
+        {
+            Notify("Ingresa la contraseña del respaldo", NotificationType.Error);
+            return;
+        }
+
+        try
+        {
+            var files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "Importar claves",
+                AllowMultiple = false,
+                FileTypeFilter = [BackupFileType]
+            });
+            if (files.Count == 0) return;
+
+            await using var stream = await files[0].OpenReadAsync();
+            using var memory = new MemoryStream();
+            await stream.CopyToAsync(memory);
+
+            var result = _importKeys.Execute(user.Id, memory.ToArray(), ImportPassword);
+
+            ImportPassword = "";
+            Notify($"Claves importadas: {result.Imported}, omitidas por duplicadas o inválidas: {result.Skipped}", NotificationType.Success);
+        }
+        catch (Exception e) when (e is ArgumentException or IOException or UnauthorizedAccessException or InvalidOperationException)
+        {
+            Notify(e.Message, NotificationType.Error);
+        }
     }
 
     private void Notify(string message, NotificationType type) =>

@@ -31,11 +31,14 @@ public static class IdentityAccessDomainRegistration
 
         services.AddSingleton<IPasswordHasher, Argon2PasswordHasher>();
         services.AddSingleton<ITotpCodeGenerator, OtpNetTotpCodeGenerator>();
+        services.AddSingleton<IKeyBackupCodec, AesGcmKeyBackupCodec>();
 
         services.AddTransient<ILoginUseCase, LoginUseCase>();
         services.AddTransient<IRegisterUseCase, RegisterUserUseCase>();
         services.AddTransient<ILogoutUseCase, LogoutUseCase>();
         services.AddTransient<IChangePasswordUseCase, ChangePasswordUseCase>();
+        services.AddTransient<IExportKeysUseCase, ExportKeysUseCase>();
+        services.AddTransient<IImportKeysUseCase, ImportKeysUseCase>();
         services.AddTransient<IRecoverAccessUseCase, RecoverAccessUseCase>();
         services.AddTransient<IRegenerateRecoveryCodeUseCase, RegenerateRecoveryCodeUseCase>();
         services.AddTransient<INewKeyUseCase, NewKeyUseCase>();

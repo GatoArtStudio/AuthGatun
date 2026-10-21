@@ -32,6 +32,33 @@
                 Classes="default"
                 Command="{Binding ChangePasswordCommand}" />
 
+            <TextBlock Text="Respaldo de claves" FontSize="20" FontWeight="Bold" Margin="0,20,0,0" />
+            <TextBlock
+                TextWrapping="Wrap"
+                Text="El respaldo se cifra con su propia contraseña. Guárdala: sin ella no se puede importar." />
+            <TextBox
+                Text="{Binding ExportPassword, Mode=TwoWay}"
+                Watermark="Contraseña del respaldo (mínimo 8 caracteres)"
+                PasswordChar="*"
+                Classes="default" />
+            <Button
+                Content="Exportar claves"
+                HorizontalContentAlignment="Center"
+                HorizontalAlignment="Stretch"
+                Classes="default"
+                Command="{Binding ExportKeysCommand}" />
+            <TextBox
+                Text="{Binding ImportPassword, Mode=TwoWay}"
+                Watermark="Contraseña del respaldo a importar"
+                PasswordChar="*"
+                Classes="default" />
+            <Button
+                Content="Importar claves"
+                HorizontalContentAlignment="Center"
+                HorizontalAlignment="Stretch"
+                Classes="default"
+                Command="{Binding ImportKeysCommand}" />
+
             <TextBlock Text="Código de recuperación" FontSize="20" FontWeight="Bold" Margin="0,20,0,0" />
             <TextBlock
                 TextWrapping="Wrap"

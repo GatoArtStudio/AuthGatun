@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using AuthGatun.Domains.IdentityAccess.Adapters.Outbound.Persistence;
+using AuthGatun.Domains.IdentityAccess.Adapters.Outbound.Security;
 using AuthGatun.Domains.IdentityAccess.Application.Models;
 using AuthGatun.Domains.IdentityAccess.Application.Ports.Outbound;
 using AuthGatun.Domains.IdentityAccess.Application.UseCases;
@@ -180,5 +181,44 @@ public class IdentityAccessUseCasesTest
         Assert.Equal("NEW-gato", code);
         Assert.False(_vault.OpenWithRecoveryCode("gato", "RECOVERY-gato"));
         Assert.True(_vault.OpenWithRecoveryCode("gato", code));
+    }
+
+    [Fact]
+    public void ExportedKeysCanBeImportedByAnotherUserWithoutDuplicates()
+    {
+        var source = RegisterUser("gato");
+        var target = RegisterUser("perro");
+        new NewKeyUseCase(_publisher, _repository).Execute(new NewKeyRequest(source.Id, "github", "SECRET"));
+        new NewKeyUseCase(_publisher, _repository).Execute(new NewKeyRequest(source.Id, "gitlab", "OTHER"));
+        var codec = new AesGcmKeyBackupCodec();
+        var backup = new ExportKeysUseCase(_repository, codec).Execute(source.Id, "Backup-password");
+        var import = new ImportKeysUseCase(_repository, codec);
+
+        var first = import.Execute(target.Id, backup, "Backup-password");
+        var second = import.Execute(target.Id, backup, "Backup-password");
+
+        Assert.Equal(new ImportResult(2, 0), first);
+        Assert.Equal(new ImportResult(0, 2), second);
+        Assert.Equal(2, new ReadKeysUseCase(_repository).Execute(target.Id).Count);
+    }
+
+    [Fact]
+    public void ImportWithWrongPasswordThrows()
+    {
+        var user = RegisterUser();
+        var codec = new AesGcmKeyBackupCodec();
+        var backup = new ExportKeysUseCase(_repository, codec).Execute(user.Id, "Backup-password");
+
+        Assert.Throws<ArgumentException>(() =>
+            new ImportKeysUseCase(_repository, codec).Execute(user.Id, backup, "wrong-password"));
+    }
+
+    [Fact]
+    public void ExportRequiresAStrongEnoughPassword()
+    {
+        var user = RegisterUser();
+
+        Assert.Throws<ArgumentException>(() =>
+            new ExportKeysUseCase(_repository, new AesGcmKeyBackupCodec()).Execute(user.Id, "short"));
     }
 }
