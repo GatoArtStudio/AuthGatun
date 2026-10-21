@@ -16,7 +16,8 @@ public sealed class SingleInstanceService(string name) : IDisposable
 
     public bool TryAcquire()
     {
-        _mutex = new Mutex(true, name, out var createdNew);
+        // The Global prefix makes the mutex visible across login sessions; on Linux it is otherwise scoped to the terminal session.
+        _mutex = new Mutex(true, $"Global\\{name}", out var createdNew);
         if (createdNew)
             return true;
 
