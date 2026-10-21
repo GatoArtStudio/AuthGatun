@@ -12,8 +12,10 @@ public class User
     public UserName Username { get; private set; }
     public Password Password { get; private set; }
     public bool UsePassword { get; private set; }
-    public List<Key> Keys { get; private set; } = [];
-    public List<IDomainEvent> UncommittedEvents { get; private set; } = [];
+    private readonly List<Key> _keys = [];
+    private readonly List<IDomainEvent> _uncommittedEvents = [];
+    public IReadOnlyList<Key> Keys => _keys;
+    public IReadOnlyList<IDomainEvent> UncommittedEvents => _uncommittedEvents;
 
     public User(Guid id, UserName username, Password password, bool usePassword)
     {
@@ -23,21 +25,21 @@ public class User
         UsePassword = usePassword;
     }
 
-    public void ClearEvents() => UncommittedEvents.Clear();
+    public void ClearEvents() => _uncommittedEvents.Clear();
     
     public void AddKey(Key key)
     {
-        Keys.Add(key);
+        _keys.Add(key);
     }
     
     public void RemoveKey(Key key)
     {
-        Keys.Remove(key);
+        _keys.Remove(key);
     }
     
     public void AddKeys(List<Key> keys)
     {
-        Keys.AddRange(keys);
+        _keys.AddRange(keys);
     }
 
     protected bool Equals(User other)

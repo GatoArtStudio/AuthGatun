@@ -1,75 +1,64 @@
-﻿using System;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Windows.Input;
+﻿using System.Reactive;
+using AuthGatun.Core.AvaloniaUI;
+using AuthGatun.Services;
 using AuthGatun.Views;
 using Avalonia.Controls;
+using ReactiveUI;
 
 namespace AuthGatun.ViewModels;
-public class MainWindowViewModel : INotifyPropertyChanged
+public class MainWindowViewModel : ViewModelBase
 {
     private UserControl _currentView;
-    private MainWindow _mainWindow;
+    private DiscordService _discordService;
+    private IViewModelFactory _viewModelFactory;
+    private IWindowFactory _windowFactory;
+    private IUserControlFactory _userControlFactory;
     
-    public MainWindowViewModel(MainWindow mainWindow)
+    public ReactiveCommand<Unit, Unit> ShowHomeViewCommand { get; }
+    public ReactiveCommand<Unit, Unit> ShowKeysViewCommand { get; }
+    public ReactiveCommand<Unit, Unit> ShowSettingsViewCommand { get; }
+    
+    public MainWindowViewModel(
+        DiscordService discordService,
+        IViewModelFactory viewModelFactory,
+        IWindowFactory windowFactory,
+        IUserControlFactory userControlFactory
+    )
     {
-        _mainWindow = mainWindow;
-        ShowHomeViewCommand = new RelayCommand(ShowHomeView);
-        ShowKeysViewCommand = new RelayCommand(ShowKeysView);
-        ShowSettingsViewCommand = new RelayCommand(ShowSettingsView);
+        _discordService = discordService;
+        _viewModelFactory = viewModelFactory;
+        _windowFactory = windowFactory;
+        _userControlFactory = userControlFactory;
+        
+        ShowHomeViewCommand = ReactiveCommand.Create(ShowHomeView);
+        ShowKeysViewCommand = ReactiveCommand.Create(ShowKeysView);
+        ShowSettingsViewCommand = ReactiveCommand.Create(ShowSettingsView);
         ShowHomeView();
     }
     // Seteamos la View actual
     public UserControl CurrentView
     {
         get => _currentView;
-        set
-        {
-            _currentView = value;
-            OnPropertyChanged();
-        }
+        set => this.RaiseAndSetIfChanged(ref _currentView, value);
     }
-    
-    public ICommand ShowHomeViewCommand { get; }
-    public ICommand ShowKeysViewCommand { get; }
-    public ICommand ShowSettingsViewCommand { get; }
     
     private void ShowHomeView()
     {
-        CurrentView = new HomeView();
-        CurrentView.DataContext = new HomeViewModel();
+        var homeViewModel = _viewModelFactory.Create<HomeViewModel>();
+        var homeViewUserControl = _userControlFactory.Create<HomeView, HomeViewModel>(homeViewModel);
+        CurrentView = homeViewUserControl;
     }
 
     private void ShowKeysView()
     {
-        CurrentView = new KeysView();
-        CurrentView.DataContext = new KeyViewModel();
+        var keyViewModel = _viewModelFactory.Create<KeyViewModel>();
+        var keysViewUserControl = _userControlFactory.Create<KeysView, KeyViewModel>(keyViewModel);
+        CurrentView = keysViewUserControl;
     }
 
     private void ShowSettingsView()
     {
-        CurrentView = new SettingsView();
-    }
-    
-    public event PropertyChangedEventHandler PropertyChanged;
-    
-    protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-    public class RelayCommand : ICommand
-    {
-        private readonly Action _execute;
-
-        public RelayCommand(Action execute)
-        {
-            _execute = execute;
-        }
-
-        public event EventHandler CanExecuteChanged;
-
-        public bool CanExecute(object parameter) => true;
-
-        public void Execute(object parameter) => _execute();
+        var settingsViewUserControl = _userControlFactory.Create<SettingsView>();
+        CurrentView = settingsViewUserControl;
     }
 }

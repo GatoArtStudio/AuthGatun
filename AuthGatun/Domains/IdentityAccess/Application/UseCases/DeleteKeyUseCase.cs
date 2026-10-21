@@ -1,23 +1,25 @@
+using System.Linq;
 using System;
-using AuthGatun.Domains.IdentityAccess.Application.Ports.In.UseCases;
-using AuthGatun.Domains.IdentityAccess.Application.Ports.Out;
-using AuthGatun.Domains.IdentityAccess.Application.UseCases.Abstract;
-using AuthGatun.Domains.IdentityAccess.Domain.Model;
+using AuthGatun.Domains.IdentityAccess.Application.Ports.Inbound;
+using AuthGatun.Domains.IdentityAccess.Application.Ports.Outbound;
 
 namespace AuthGatun.Domains.IdentityAccess.Application.UseCases;
 
-public class DeleteKeyUseCase(IDomainEventPublisher publisher, IUserRepository repository)
-    : UseCase(publisher, repository), IDeleteKeyUseCase
+public class DeleteKeyUseCase(IDomainEventPublisher publisher, IUserRepository repository) : IDeleteKeyUseCase
 {
-    public void Execute(Key key)
+    public bool Execute(Guid keyId)
     {
-        var user = Repository.Read(key.UserId);
-        if (user is null) throw new Exception("IdentityAccess not found");
+        var user = repository.ReadAll().FirstOrDefault(u => u.Keys.Any(k => k.Id == keyId));
+        var key = user?.Keys.First(k => k.Id == keyId);
+        if (user is null || key is null) return false;
+
         user.RemoveKey(key);
-        Repository.Save(user);
-        
-        user.UncommittedEvents.ForEach(Publisher.Publish);
+        repository.Save(user);
+
+        foreach (var domainEvent in user.UncommittedEvents)
+            publisher.Publish(domainEvent);
         user.ClearEvents();
+
+        return true;
     }
 }
-    
