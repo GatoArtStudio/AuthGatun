@@ -27,6 +27,8 @@ public class RegisterWindowViewModel(
     private string _newpassword = "";
     private string _repeatpassword = "";
     private string _messagestatus = "";
+    private string _recoveryCode = "";
+    private bool _showRecoveryCode;
 
     public string Username
     {
@@ -52,6 +54,25 @@ public class RegisterWindowViewModel(
         set => SetField(ref _messagestatus, value);
     }
 
+    public string RecoveryCode
+    {
+        get => _recoveryCode;
+        private set => SetField(ref _recoveryCode, value);
+    }
+
+    public bool ShowRecoveryCode
+    {
+        get => _showRecoveryCode;
+        private set
+        {
+            if (SetField(ref _showRecoveryCode, value))
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ShowForm)));
+        }
+    }
+
+    public bool ShowForm => !ShowRecoveryCode;
+
+    public ICommand ContinueCommand => new RelayCommand(OnContinue);
     public ICommand RegisterCommand => new RelayCommand(OnRegister);
     public ICommand ChangeToLoginWindowCommand => new RelayCommand(OnChangeToLoginWindow);
 
@@ -89,20 +110,28 @@ public class RegisterWindowViewModel(
 
         try
         {
-            AuthenticatedUser newUser = register.Execute(Username, Newpassword);
-            userStatusService.User = newUser;
-            
-            var mainViewModel = viewModelFactory.Create<MainWindowViewModel>();
-            var mainWindow = windowFactory.Create<MainWindow, MainWindowViewModel>(mainViewModel);
-            mainWindow.Show();
-            
-            windowService.Close(this);
+            RegistrationResult result = register.Execute(Username, Newpassword);
+            userStatusService.User = result.User;
+            RecoveryCode = result.RecoveryCode;
+            Newpassword = "";
+            Repeatpassword = "";
+            Messagestatus = "";
+            ShowRecoveryCode = true;
         }
         catch (Exception e)
         {
             Messagestatus = $"Hubo un error, {e.Message}";
         }
     }
+    private void OnContinue()
+    {
+        var mainViewModel = viewModelFactory.Create<MainWindowViewModel>();
+        var mainWindow = windowFactory.Create<MainWindow, MainWindowViewModel>(mainViewModel);
+        mainWindow.Show();
+
+        windowService.Close(this);
+    }
+
     private void OnChangeToLoginWindow()
     {
         var loginViewModel = viewModelFactory.Create<LoginWindowViewModel>();

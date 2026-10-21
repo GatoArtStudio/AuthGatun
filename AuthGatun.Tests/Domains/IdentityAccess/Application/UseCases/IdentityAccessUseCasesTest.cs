@@ -20,22 +20,37 @@ public class IdentityAccessUseCasesTest
     private sealed class FakeVaultSession : IVaultSession
     {
         private readonly Dictionary<string, string> _passwords = new();
-        public bool IsOpen { get; private set; }
+        private readonly Dictionary<string, string> _recoveryCodes = new();
+        private string? _current;
+
+        public bool IsOpen => _current is not null;
         public bool Exists(string userName) => _passwords.ContainsKey(userName);
 
-        public void Create(string userName, string password)
+        public string Create(string userName, string password)
         {
             _passwords[userName] = password;
-            IsOpen = true;
+            _recoveryCodes[userName] = "RECOVERY-" + userName;
+            _current = userName;
+            return _recoveryCodes[userName];
         }
 
         public bool Open(string userName, string password)
         {
-            IsOpen = _passwords.TryGetValue(userName, out var stored) && stored == password;
+            _current = _passwords.TryGetValue(userName, out var stored) && stored == password ? userName : null;
             return IsOpen;
         }
 
-        public void Close() => IsOpen = false;
+        public bool OpenWithRecoveryCode(string userName, string recoveryCode)
+        {
+            _current = _recoveryCodes.TryGetValue(userName, out var stored) && stored == recoveryCode ? userName : null;
+            return IsOpen;
+        }
+
+        public void ChangePassword(string newPassword) => _passwords[_current!] = newPassword;
+
+        public string RegenerateRecoveryCode() => _recoveryCodes[_current!] = "NEW-" + _current;
+
+        public void Close() => _current = null;
     }
 
     private sealed class FakePublisher : IDomainEventPublisher
@@ -54,8 +69,11 @@ public class IdentityAccessUseCasesTest
     private readonly FakePasswordHasher _hasher = new();
     private readonly FakeVaultSession _vault = new();
 
-    private AuthenticatedUser RegisterUser(string name = "gato", string password = "Password-testing") =>
+    private RegistrationResult Register(string name = "gato", string password = "Password-testing") =>
         new RegisterUserUseCase(_publisher, _vault, _repository, _hasher).Execute(name, password);
+
+    private AuthenticatedUser RegisterUser(string name = "gato", string password = "Password-testing") =>
+        Register(name, password).User;
 
     [Fact]
     public void RegisterThenLoginReturnsSameUser()
@@ -118,5 +136,49 @@ public class IdentityAccessUseCasesTest
         Assert.True(delete.Execute(keyId));
         Assert.False(delete.Execute(keyId));
         Assert.Empty(new ReadKeysUseCase(_repository).Execute(user.Id));
+    }
+
+    [Fact]
+    public void RegisterReturnsTheRecoveryCode()
+    {
+        Assert.Equal("RECOVERY-gato", Register().RecoveryCode);
+    }
+
+    [Fact]
+    public void ChangePasswordRequiresTheCurrentPasswordAndReplacesIt()
+    {
+        var user = RegisterUser();
+        var changePassword = new ChangePasswordUseCase(_vault, _repository, _hasher);
+
+        Assert.Throws<ArgumentException>(() => changePassword.Execute(user.Id, "wrong-password", "New-password-1"));
+
+        changePassword.Execute(user.Id, "Password-testing", "New-password-1");
+
+        var login = new LoginUseCase(_vault, _repository);
+        Assert.Null(login.Execute("gato", "Password-testing"));
+        Assert.NotNull(login.Execute("gato", "New-password-1"));
+    }
+
+    [Fact]
+    public void RecoverAccessWithTheRecoveryCodeSetsANewPassword()
+    {
+        RegisterUser();
+        var recover = new RecoverAccessUseCase(_vault, _repository, _hasher);
+
+        Assert.Null(recover.Execute("gato", "wrong-code", "New-password-1"));
+        Assert.NotNull(recover.Execute("gato", "RECOVERY-gato", "New-password-1"));
+        Assert.NotNull(new LoginUseCase(_vault, _repository).Execute("gato", "New-password-1"));
+    }
+
+    [Fact]
+    public void RegenerateRecoveryCodeInvalidatesTheOldOne()
+    {
+        RegisterUser();
+
+        var code = new RegenerateRecoveryCodeUseCase(_vault).Execute();
+
+        Assert.Equal("NEW-gato", code);
+        Assert.False(_vault.OpenWithRecoveryCode("gato", "RECOVERY-gato"));
+        Assert.True(_vault.OpenWithRecoveryCode("gato", code));
     }
 }

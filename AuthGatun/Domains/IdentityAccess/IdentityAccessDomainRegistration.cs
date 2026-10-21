@@ -35,6 +35,9 @@ public static class IdentityAccessDomainRegistration
         services.AddTransient<ILoginUseCase, LoginUseCase>();
         services.AddTransient<IRegisterUseCase, RegisterUserUseCase>();
         services.AddTransient<ILogoutUseCase, LogoutUseCase>();
+        services.AddTransient<IChangePasswordUseCase, ChangePasswordUseCase>();
+        services.AddTransient<IRecoverAccessUseCase, RecoverAccessUseCase>();
+        services.AddTransient<IRegenerateRecoveryCodeUseCase, RegenerateRecoveryCodeUseCase>();
         services.AddTransient<INewKeyUseCase, NewKeyUseCase>();
         services.AddTransient<IDeleteKeyUseCase, DeleteKeyUseCase>();
         services.AddTransient<IReadKeysUseCase, ReadKeysUseCase>();

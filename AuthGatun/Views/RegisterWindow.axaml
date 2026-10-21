@@ -36,7 +36,8 @@
         </Window.Styles>
         
         <Border Classes="RegisterCard">
-                <StackPanel>
+                <Grid>
+                <StackPanel IsVisible="{Binding ShowForm}">
                         <TextBlock
                                 HorizontalAlignment="Center"
                                 FontSize="40"
@@ -78,5 +79,29 @@
                                 Foreground="Red"
                                 HorizontalAlignment="Stretch" />
                 </StackPanel>
+                <StackPanel IsVisible="{Binding ShowRecoveryCode}">
+                        <TextBlock
+                                HorizontalAlignment="Center"
+                                FontSize="28"
+                                FontWeight="Bold"
+                                Text="Código de recuperación" />
+                        <TextBlock
+                                TextWrapping="Wrap"
+                                Text="Guárdalo en un lugar seguro. Es la única forma de recuperar tus claves si olvidas la contraseña y no se volverá a mostrar." />
+                        <TextBox
+                                Text="{Binding RecoveryCode, Mode=OneWay}"
+                                IsReadOnly="True"
+                                TextWrapping="Wrap"
+                                FontFamily="monospace"
+                                Classes="default" />
+                        <Button
+                                Content="He guardado el código, continuar"
+                                HorizontalContentAlignment="Center"
+                                HorizontalAlignment="Stretch"
+                                Margin="0,20,0,0"
+                                Classes="default"
+                                Command="{Binding ContinueCommand}"/>
+                </StackPanel>
+                </Grid>
         </Border>
 </Window>

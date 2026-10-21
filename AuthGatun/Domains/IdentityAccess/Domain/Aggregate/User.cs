@@ -27,6 +27,11 @@ public class User
 
     public void ClearEvents() => _uncommittedEvents.Clear();
     
+    public void ChangePassword(Password password)
+    {
+        Password = password ?? throw new ArgumentNullException(nameof(password), "Password cannot be null");
+    }
+
     public void AddKey(Key key)
     {
         _keys.Add(key);

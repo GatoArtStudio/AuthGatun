@@ -107,4 +107,39 @@ public class SqlCipherVaultTest : IDisposable
         Assert.Equal("SECRET", Assert.Single(user.Keys).SecretKey);
         Assert.False(File.Exists(legacyPath));
     }
+
+    [Fact]
+    public void ChangedPasswordReplacesTheOldOneAndKeepsTheData()
+    {
+        using (var vault = NewVault())
+        {
+            vault.Create("gato", Password);
+            new SqLiteRepository(vault).Save(NewUser("gato"));
+            vault.ChangePassword("New-password-1");
+        }
+
+        using var reopened = NewVault();
+        Assert.False(reopened.Open("gato", Password));
+        Assert.True(reopened.Open("gato", "New-password-1"));
+        Assert.NotNull(new SqLiteRepository(reopened).FromName("gato"));
+    }
+
+    [Fact]
+    public void RecoveryCodeOpensTheVaultUntilItIsRegenerated()
+    {
+        string firstCode;
+        string secondCode;
+        using (var vault = NewVault())
+        {
+            firstCode = vault.Create("gato", Password);
+            new SqLiteRepository(vault).Save(NewUser("gato"));
+            secondCode = vault.RegenerateRecoveryCode();
+        }
+
+        using var reopened = NewVault();
+        Assert.False(reopened.OpenWithRecoveryCode("gato", "not-a-code"));
+        Assert.False(reopened.OpenWithRecoveryCode("gato", firstCode));
+        Assert.True(reopened.OpenWithRecoveryCode("gato", secondCode.ToLowerInvariant()));
+        Assert.NotNull(new SqLiteRepository(reopened).FromName("gato"));
+    }
 }

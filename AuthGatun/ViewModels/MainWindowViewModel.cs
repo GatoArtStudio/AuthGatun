@@ -54,6 +54,8 @@ public class MainWindowViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _currentView, value);
     }
     
+    public void Lock() => Logout();
+
     private void Logout()
     {
         _logout.Execute();
@@ -83,7 +85,8 @@ public class MainWindowViewModel : ViewModelBase
 
     private void ShowSettingsView()
     {
-        var settingsViewUserControl = _userControlFactory.Create<SettingsView>();
+        var settingsViewModel = _viewModelFactory.Create<SettingsViewModel>();
+        var settingsViewUserControl = _userControlFactory.Create<SettingsView, SettingsViewModel>(settingsViewModel);
         CurrentView = settingsViewUserControl;
     }
 }

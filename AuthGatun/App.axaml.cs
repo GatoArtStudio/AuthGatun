@@ -53,7 +53,7 @@ public partial class App : Application
         services.AddTransient<RegisterWindowViewModel>();
         services.AddTransient<HomeViewModel>();
         services.AddTransient<KeyViewModel>();
-        services.AddTransient<HomeViewModel>();
+        services.AddTransient<SettingsViewModel>();
         
         // Windows, They implement Window
         services.AddTransient<LoginWindow>();

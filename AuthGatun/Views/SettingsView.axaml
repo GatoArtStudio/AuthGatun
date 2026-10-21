@@ -2,8 +2,52 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:AuthGatun.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="AuthGatun.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel"
              x:CompileBindings="True">
-    <TextBlock Text="View de Settings" HorizontalAlignment="Center" VerticalAlignment="Center"></TextBlock>
+    <ScrollViewer>
+        <StackPanel Margin="20" Spacing="10">
+            <TextBlock Text="Cambiar contraseña" FontSize="20" FontWeight="Bold" />
+            <TextBox
+                Text="{Binding CurrentPassword, Mode=TwoWay}"
+                Watermark="Contraseña actual"
+                PasswordChar="*"
+                Classes="default" />
+            <TextBox
+                Text="{Binding NewPassword, Mode=TwoWay}"
+                Watermark="Nueva contraseña"
+                PasswordChar="*"
+                Classes="default" />
+            <TextBox
+                Text="{Binding RepeatPassword, Mode=TwoWay}"
+                Watermark="Repetir la nueva contraseña"
+                PasswordChar="*"
+                Classes="default" />
+            <Button
+                Content="Cambiar contraseña"
+                HorizontalContentAlignment="Center"
+                HorizontalAlignment="Stretch"
+                Classes="default"
+                Command="{Binding ChangePasswordCommand}" />
+
+            <TextBlock Text="Código de recuperación" FontSize="20" FontWeight="Bold" Margin="0,20,0,0" />
+            <TextBlock
+                TextWrapping="Wrap"
+                Text="Generar uno nuevo invalida el anterior. Se muestra una sola vez, guárdalo en un lugar seguro." />
+            <Button
+                Content="Generar nuevo código"
+                HorizontalContentAlignment="Center"
+                HorizontalAlignment="Stretch"
+                Classes="default"
+                Command="{Binding RegenerateRecoveryCodeCommand}" />
+            <TextBox
+                Text="{Binding RecoveryCode, Mode=OneWay}"
+                IsReadOnly="True"
+                TextWrapping="Wrap"
+                FontFamily="monospace"
+                Classes="default" />
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>

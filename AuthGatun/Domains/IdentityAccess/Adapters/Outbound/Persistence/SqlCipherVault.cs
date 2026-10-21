@@ -5,6 +5,7 @@ using System.Text;
 using AuthGatun.Domains.IdentityAccess.Application.Ports.Outbound;
 using Konscious.Security.Cryptography;
 using Microsoft.Data.Sqlite;
+using OtpNet;
 
 namespace AuthGatun.Domains.IdentityAccess.Adapters.Outbound.Persistence;
 
@@ -12,13 +13,19 @@ public sealed class SqlCipherVault : IVaultSession, IDisposable
 {
     private const int SaltSize = 16;
     private const int KeySize = 32;
+    private const int NonceSize = 12;
+    private const int TagSize = 16;
     private const int Iterations = 4;
     private const int MemorySize = 65536;
     private const int DegreeOfParallelism = 1;
+    private static readonly byte[] HeaderMagic = "AGV1"u8.ToArray();
 
     private readonly string _vaultsFolder;
     private readonly LegacyDatabaseMigrator _legacyMigrator;
     private SqliteConnection? _connection;
+    private VaultHeader? _header;
+    private byte[]? _dataKey;
+    private string? _userName;
 
     static SqlCipherVault()
     {
@@ -42,38 +49,108 @@ public sealed class SqlCipherVault : IVaultSession, IDisposable
     public bool Exists(string userName) =>
         File.Exists(DatabasePath(userName)) || _legacyMigrator.HasUser(userName);
 
-    public void Create(string userName, string password)
+    public string Create(string userName, string password)
     {
         if (Exists(userName))
             throw new InvalidOperationException("The vault already exists.");
 
-        CreateVault(userName, password);
+        return CreateVault(userName, password);
     }
 
     public bool Open(string userName, string password)
     {
         Close();
 
-        var databasePath = DatabasePath(userName);
-        if (!File.Exists(databasePath))
+        if (!File.Exists(DatabasePath(userName)))
             return MigrateLegacyUser(userName, password);
 
-        var saltPath = SaltPath(userName);
-        if (!File.Exists(saltPath))
+        var header = ReadHeader(userName);
+        if (header is null)
             return false;
 
-        var connection = OpenWithPassword(databasePath, password, File.ReadAllBytes(saltPath));
-        if (connection is null)
+        var passwordKey = DeriveKey(password, header.PasswordSalt);
+        try
+        {
+            var dataKey = Unwrap(passwordKey, header.PasswordWrap);
+            return dataKey is not null && OpenSession(userName, header, dataKey);
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(passwordKey);
+        }
+    }
+
+    public bool OpenWithRecoveryCode(string userName, string recoveryCode)
+    {
+        Close();
+
+        if (!File.Exists(DatabasePath(userName)))
             return false;
 
-        _connection = connection;
-        return true;
+        var header = ReadHeader(userName);
+        if (header?.RecoveryWrap is null)
+            return false;
+
+        var recoveryKey = ParseRecoveryCode(recoveryCode);
+        if (recoveryKey is null)
+            return false;
+
+        try
+        {
+            var dataKey = Unwrap(recoveryKey, header.RecoveryWrap);
+            return dataKey is not null && OpenSession(userName, header, dataKey);
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(recoveryKey);
+        }
+    }
+
+    public void ChangePassword(string newPassword)
+    {
+        var (header, dataKey, userName) = RequireSession();
+
+        var salt = RandomNumberGenerator.GetBytes(SaltSize);
+        var passwordKey = DeriveKey(newPassword, salt);
+        try
+        {
+            _header = header with { PasswordSalt = salt, PasswordWrap = Wrap(passwordKey, dataKey) };
+            WriteHeader(userName, _header);
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(passwordKey);
+        }
+    }
+
+    public string RegenerateRecoveryCode()
+    {
+        var (header, dataKey, userName) = RequireSession();
+
+        var recoveryKey = RandomNumberGenerator.GetBytes(KeySize);
+        try
+        {
+            _header = header with { RecoveryWrap = Wrap(recoveryKey, dataKey) };
+            WriteHeader(userName, _header);
+            return FormatRecoveryCode(recoveryKey);
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(recoveryKey);
+        }
     }
 
     public void Close()
     {
         _connection?.Dispose();
         _connection = null;
+
+        if (_dataKey is not null)
+            CryptographicOperations.ZeroMemory(_dataKey);
+
+        _dataKey = null;
+        _header = null;
+        _userName = null;
     }
 
     public void Dispose() => Close();
@@ -122,41 +199,87 @@ public sealed class SqlCipherVault : IVaultSession, IDisposable
         return true;
     }
 
-    private void CreateVault(string userName, string password)
+    private string CreateVault(string userName, string password)
     {
         Directory.CreateDirectory(_vaultsFolder);
 
+        var dataKey = RandomNumberGenerator.GetBytes(KeySize);
         var salt = RandomNumberGenerator.GetBytes(SaltSize);
-        File.WriteAllBytes(SaltPath(userName), salt);
+        var recoveryKey = RandomNumberGenerator.GetBytes(KeySize);
+        var passwordKey = DeriveKey(password, salt);
 
-        var connection = OpenWithPassword(DatabasePath(userName), password, salt)
-                         ?? throw new InvalidOperationException("The vault could not be created.");
-
-        using (var command = connection.CreateCommand())
+        try
         {
-            command.CommandText = @"
-                CREATE TABLE IF NOT EXISTS users (
-                    id TEXT PRIMARY KEY,
-                    user_name TEXT NOT NULL,
-                    password TEXT,
-                    use_password BOOLEAN NOT NULL CHECK (use_password IN (0, 1))
-                );
-                CREATE TABLE IF NOT EXISTS keys (
-                    id TEXT PRIMARY KEY,
-                    user_id TEXT NOT NULL,
-                    service_name TEXT NOT NULL,
-                    secret_key TEXT NOT NULL,
-                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-                );";
-            command.ExecuteNonQuery();
+            var header = new VaultHeader(salt, Wrap(passwordKey, dataKey), Wrap(recoveryKey, dataKey));
+            WriteHeader(userName, header);
+
+            var connection = OpenDatabase(DatabasePath(userName), dataKey)
+                             ?? throw new InvalidOperationException("The vault could not be created.");
+
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = @"
+                    CREATE TABLE IF NOT EXISTS users (
+                        id TEXT PRIMARY KEY,
+                        user_name TEXT NOT NULL,
+                        password TEXT,
+                        use_password BOOLEAN NOT NULL CHECK (use_password IN (0, 1))
+                    );
+                    CREATE TABLE IF NOT EXISTS keys (
+                        id TEXT PRIMARY KEY,
+                        user_id TEXT NOT NULL,
+                        service_name TEXT NOT NULL,
+                        secret_key TEXT NOT NULL,
+                        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                    );";
+                command.ExecuteNonQuery();
+            }
+
+            _connection = connection;
+            _header = header;
+            _dataKey = dataKey;
+            _userName = userName;
+
+            return FormatRecoveryCode(recoveryKey);
+        }
+        catch
+        {
+            CryptographicOperations.ZeroMemory(dataKey);
+            throw;
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(passwordKey);
+            CryptographicOperations.ZeroMemory(recoveryKey);
+        }
+    }
+
+    private bool OpenSession(string userName, VaultHeader header, byte[] dataKey)
+    {
+        var connection = OpenDatabase(DatabasePath(userName), dataKey);
+        if (connection is null)
+        {
+            CryptographicOperations.ZeroMemory(dataKey);
+            return false;
         }
 
         _connection = connection;
+        _header = header;
+        _dataKey = dataKey;
+        _userName = userName;
+        return true;
     }
 
-    private static SqliteConnection? OpenWithPassword(string databasePath, string password, byte[] salt)
+    private (VaultHeader Header, byte[] DataKey, string UserName) RequireSession()
     {
-        var key = DeriveKey(password, salt);
+        if (_connection is null || _header is null || _dataKey is null || _userName is null)
+            throw new InvalidOperationException("The vault is locked.");
+
+        return (_header, _dataKey, _userName);
+    }
+
+    private static SqliteConnection? OpenDatabase(string databasePath, byte[] dataKey)
+    {
         var connection = new SqliteConnection($"Data Source={databasePath};Mode=ReadWriteCreate;Pooling=False");
 
         try
@@ -165,7 +288,7 @@ public sealed class SqlCipherVault : IVaultSession, IDisposable
 
             using (var command = connection.CreateCommand())
             {
-                command.CommandText = $"PRAGMA key = \"x'{Convert.ToHexString(key)}'\"";
+                command.CommandText = $"PRAGMA key = \"x'{Convert.ToHexString(dataKey)}'\"";
                 command.ExecuteNonQuery();
             }
 
@@ -181,10 +304,6 @@ public sealed class SqlCipherVault : IVaultSession, IDisposable
         {
             connection.Dispose();
             return null;
-        }
-        finally
-        {
-            CryptographicOperations.ZeroMemory(key);
         }
     }
 
@@ -208,10 +327,118 @@ public sealed class SqlCipherVault : IVaultSession, IDisposable
         }
     }
 
+    private static WrappedKey Wrap(byte[] keyEncryptionKey, byte[] dataKey)
+    {
+        var nonce = RandomNumberGenerator.GetBytes(NonceSize);
+        var cipher = new byte[dataKey.Length];
+        var tag = new byte[TagSize];
+
+        using var aes = new AesGcm(keyEncryptionKey, TagSize);
+        aes.Encrypt(nonce, dataKey, cipher, tag);
+        return new WrappedKey(nonce, tag, cipher);
+    }
+
+    private static byte[]? Unwrap(byte[] keyEncryptionKey, WrappedKey wrapped)
+    {
+        var dataKey = new byte[wrapped.Cipher.Length];
+        try
+        {
+            using var aes = new AesGcm(keyEncryptionKey, TagSize);
+            aes.Decrypt(wrapped.Nonce, wrapped.Cipher, wrapped.Tag, dataKey);
+            return dataKey;
+        }
+        catch (CryptographicException)
+        {
+            CryptographicOperations.ZeroMemory(dataKey);
+            return null;
+        }
+    }
+
+    private static string FormatRecoveryCode(byte[] recoveryKey)
+    {
+        var encoded = Base32Encoding.ToString(recoveryKey).TrimEnd('=');
+        var groups = new string[(encoded.Length + 3) / 4];
+        for (var i = 0; i < groups.Length; i++)
+            groups[i] = encoded.Substring(i * 4, Math.Min(4, encoded.Length - i * 4));
+
+        return string.Join('-', groups);
+    }
+
+    private static byte[]? ParseRecoveryCode(string recoveryCode)
+    {
+        try
+        {
+            var normalized = recoveryCode.Replace("-", "").Replace(" ", "").ToUpperInvariant();
+            var key = Base32Encoding.ToBytes(normalized);
+            return key.Length == KeySize ? key : null;
+        }
+        catch (ArgumentException)
+        {
+            return null;
+        }
+    }
+
+    private VaultHeader? ReadHeader(string userName)
+    {
+        var path = HeaderPath(userName);
+        if (!File.Exists(path))
+            return null;
+
+        try
+        {
+            using var reader = new BinaryReader(File.OpenRead(path));
+            if (!reader.ReadBytes(HeaderMagic.Length).AsSpan().SequenceEqual(HeaderMagic))
+                return null;
+
+            var salt = reader.ReadBytes(SaltSize);
+            var passwordWrap = ReadWrapped(reader);
+            var recoveryWrap = reader.ReadBoolean() ? ReadWrapped(reader) : null;
+            return new VaultHeader(salt, passwordWrap, recoveryWrap);
+        }
+        catch (EndOfStreamException)
+        {
+            return null;
+        }
+    }
+
+    private void WriteHeader(string userName, VaultHeader header)
+    {
+        var path = HeaderPath(userName);
+        var temporaryPath = path + ".tmp";
+
+        using (var writer = new BinaryWriter(File.Create(temporaryPath)))
+        {
+            writer.Write(HeaderMagic);
+            writer.Write(header.PasswordSalt);
+            WriteWrapped(writer, header.PasswordWrap);
+            writer.Write(header.RecoveryWrap is not null);
+            if (header.RecoveryWrap is not null)
+                WriteWrapped(writer, header.RecoveryWrap);
+            writer.Flush();
+            ((FileStream)writer.BaseStream).Flush(true);
+        }
+
+        File.Move(temporaryPath, path, true);
+    }
+
+    private static WrappedKey ReadWrapped(BinaryReader reader) =>
+        new(reader.ReadBytes(NonceSize), reader.ReadBytes(TagSize), reader.ReadBytes(KeySize));
+
+    private static void WriteWrapped(BinaryWriter writer, WrappedKey wrapped)
+    {
+        writer.Write(wrapped.Nonce);
+        writer.Write(wrapped.Tag);
+        writer.Write(wrapped.Cipher);
+    }
+
     private string DatabasePath(string userName) => Path.Combine(_vaultsFolder, VaultId(userName) + ".db");
 
-    private string SaltPath(string userName) => Path.Combine(_vaultsFolder, VaultId(userName) + ".salt");
+    private string HeaderPath(string userName) => Path.Combine(_vaultsFolder, VaultId(userName) + ".vault");
 
     private static string VaultId(string userName) =>
         Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(userName)))[..32].ToLowerInvariant();
+
+    private sealed record WrappedKey(byte[] Nonce, byte[] Tag, byte[] Cipher);
+
+    private sealed record VaultHeader(byte[] PasswordSalt, WrappedKey PasswordWrap, WrappedKey? RecoveryWrap);
 }

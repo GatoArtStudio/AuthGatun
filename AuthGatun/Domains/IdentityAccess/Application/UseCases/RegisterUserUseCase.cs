@@ -14,7 +14,7 @@ public class RegisterUserUseCase(
     IPasswordHasher passwordHasher
 ) : IRegisterUseCase
 {
-    public AuthenticatedUser Execute(string userName, string password)
+    public RegistrationResult Execute(string userName, string password)
     {
         if (string.IsNullOrWhiteSpace(userName))
             throw new ArgumentException("The user to be registered cannot be null or contain spaces.");
@@ -26,7 +26,7 @@ public class RegisterUserUseCase(
             throw new ArgumentException("The user already exists, choose another user.");
 
         var newUser = new User(Guid.NewGuid(), new UserName(userName), new Password(passwordHasher.Hash(password)), true);
-        vault.Create(userName, password);
+        var recoveryCode = vault.Create(userName, password);
         if (!repository.Save(newUser))
         {
             vault.Close();
@@ -37,6 +37,6 @@ public class RegisterUserUseCase(
             publisher.Publish(domainEvent);
         newUser.ClearEvents();
 
-        return new AuthenticatedUser(newUser.Id, newUser.Username.Value);
+        return new RegistrationResult(new AuthenticatedUser(newUser.Id, newUser.Username.Value), recoveryCode);
     }
 }
