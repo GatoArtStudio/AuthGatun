@@ -16,7 +16,7 @@ public class ReadTotpCodesUseCase(IUserRepository repository, ITotpCodeGenerator
         if (user is null)
             throw new IdentityAccessException(IdentityAccessError.UserNotFound, "The user is invalid or does not exist.");
 
-        return user.Keys
+        return user.OrderedKeys()
             .Select(key => new TotpCodeModel(
                 key.Id,
                 key.ServiceName,

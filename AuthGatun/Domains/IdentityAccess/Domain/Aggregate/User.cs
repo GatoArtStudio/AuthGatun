@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using AuthGatun.Domains.IdentityAccess.Domain.Event;
 using AuthGatun.Domains.IdentityAccess.Domain.Model;
 using AuthGatun.Domains.IdentityAccess.Domain.ValueObject;
@@ -57,6 +58,52 @@ public class User
             current.IsFavorite,
             current.SortOrder);
         return true;
+    }
+
+    public IReadOnlyList<Key> OrderedKeys() =>
+        BaseOrder().OrderByDescending(key => key.IsFavorite).ToList();
+
+    public bool SetKeyFavorite(Guid keyId, bool isFavorite)
+    {
+        var index = _keys.FindIndex(key => key.Id == keyId);
+        if (index < 0) return false;
+
+        _keys[index] = _keys[index] with { IsFavorite = isFavorite };
+        RenumberKeys(BaseOrder());
+        return true;
+    }
+
+    public bool MoveKey(Guid keyId, int offset)
+    {
+        var order = BaseOrder();
+        var index = order.FindIndex(key => key.Id == keyId);
+        if (index < 0) return false;
+
+        var step = Math.Sign(offset);
+        var target = index + step;
+        while (target >= 0 && target < order.Count && order[target].IsFavorite != order[index].IsFavorite)
+            target += step;
+        if (step == 0 || target < 0 || target >= order.Count) return false;
+
+        (order[index], order[target]) = (order[target], order[index]);
+        RenumberKeys(order);
+        return true;
+    }
+
+    private List<Key> BaseOrder() =>
+        _keys.Select((key, index) => (key, index))
+            .OrderBy(entry => entry.key.SortOrder)
+            .ThenBy(entry => entry.index)
+            .Select(entry => entry.key)
+            .ToList();
+
+    private void RenumberKeys(IReadOnlyList<Key> order)
+    {
+        for (var position = 0; position < order.Count; position++)
+        {
+            var index = _keys.FindIndex(key => key.Id == order[position].Id);
+            _keys[index] = order[position] with { SortOrder = position };
+        }
     }
 
     public void AddKeys(List<Key> keys)
