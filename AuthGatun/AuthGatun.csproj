@@ -31,6 +31,8 @@
     <PackageReference Include="Notification.Avalonia" Version="2.1.0" />
     <PackageReference Include="Otp.NET" Version="1.4.0" />
     <PackageReference Include="ReactiveUI" Version="20.1.63" />
+    <PackageReference Include="SkiaSharp" Version="2.88.8" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlcipher" Version="2.1.10" />
+    <PackageReference Include="ZXing.Net" Version="0.16.11" />
   </ItemGroup>
 </Project>
