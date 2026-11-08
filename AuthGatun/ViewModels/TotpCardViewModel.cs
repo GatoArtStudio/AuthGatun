@@ -98,7 +98,7 @@ public class TotpCardViewModel : ViewModelBase
         }
     }
 
-    public string FormattedCode => Code.Length == 6 ? $"{Code[..3]} {Code[3..]}" : Code;
+    public string FormattedCode => Code.Length == 6 ? $"{Code[..3]} {Code[3..]}" : Code.Length == 8 ? $"{Code[..4]} {Code[4..]}" : Code;
 
     public int SecondsRemaining
     {

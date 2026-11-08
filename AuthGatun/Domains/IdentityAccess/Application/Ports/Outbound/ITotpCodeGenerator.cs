@@ -1,10 +1,10 @@
+using AuthGatun.Domains.IdentityAccess.Domain.ValueObject;
+
 namespace AuthGatun.Domains.IdentityAccess.Application.Ports.Outbound;
 
 public interface ITotpCodeGenerator
 {
-    int PeriodSeconds { get; }
+    string Generate(string secretKey, TotpParameters parameters);
 
-    string Generate(string secretKey);
-
-    int RemainingSeconds();
+    int RemainingSeconds(TotpParameters parameters);
 }
