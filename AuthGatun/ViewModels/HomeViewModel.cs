@@ -6,6 +6,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using AuthGatun.Core.AvaloniaUI;
 using AuthGatun.Core.Localization;
+using AuthGatun.Domains.IdentityAccess.Application;
 using AuthGatun.Domains.IdentityAccess.Application.Ports.Inbound;
 using AuthGatun.Domains.IdentityAccess.Application.Models;
 using AuthGatun.Helpers;
@@ -24,6 +25,7 @@ public class HomeViewModel : ViewModelBase
     private readonly IReadTotpCodesUseCase _readTotpCodes;
     private readonly DispatcherTimer _refreshTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
     private readonly IDeleteKeyUseCase _deleteKey;
+    private readonly IUpdateKeyUseCase _updateKey;
     private readonly IGenerateTotpCodeUseCase _generateTotpCode;
     
     private readonly UserStatusService _userStatusService;
@@ -39,6 +41,7 @@ public class HomeViewModel : ViewModelBase
         DiscordService discordService,
         IReadTotpCodesUseCase readTotpCodes,
         IDeleteKeyUseCase deleteKey,
+        IUpdateKeyUseCase updateKey,
         IGenerateTotpCodeUseCase generateTotpCode,
         NotifyManagerService notifyManagerService,
         UserStatusService userStatusService,
@@ -52,6 +55,7 @@ public class HomeViewModel : ViewModelBase
         _localizer = localizer;
         _readTotpCodes = readTotpCodes;
         _deleteKey = deleteKey;
+        _updateKey = updateKey;
         _generateTotpCode = generateTotpCode;
 
         _refreshTimer.Tick += (_, _) => Refresh();
@@ -82,7 +86,7 @@ public class HomeViewModel : ViewModelBase
         {
             var card = Cards.FirstOrDefault(c => c.Id == model.Id);
             if (card is null)
-                Cards.Add(new TotpCardViewModel(model, id => _ = OnCopyToClipboardCodeCommand(id), OnDeleteServiceKeyCommand));
+                Cards.Add(new TotpCardViewModel(model, id => _ = OnCopyToClipboardCodeCommand(id), OnDeleteServiceKeyCommand, OnUpdateServiceKey));
             else
                 card.Update(model);
         }
@@ -132,5 +136,37 @@ public class HomeViewModel : ViewModelBase
         _notifyManagerService.SendNotifyInWindow(_localizer.Get("Home_Deleted"), title: _localizer.Get("Home_NotifyTitle"));
 
         Refresh();
+    }
+
+    private bool OnUpdateServiceKey(Guid id, string serviceName, string? secretKey)
+    {
+        var title = _localizer.Get("Edit_NotifyTitle");
+        var user = _userStatusService.User;
+        if (user is null)
+            return false;
+
+        if (string.IsNullOrWhiteSpace(serviceName))
+        {
+            _notifyManagerService.SendNotifyInWindow(_localizer.Get("Edit_NameRequired"), title: title, NotificationType.Error);
+            return false;
+        }
+
+        try
+        {
+            _updateKey.Execute(new UpdateKeyRequest(user.Id, id, serviceName.Trim(), secretKey));
+            _notifyManagerService.SendNotifyInWindow(_localizer.Get("Edit_Saved"), title: title, NotificationType.Success);
+            Refresh();
+            return true;
+        }
+        catch (IdentityAccessException e)
+        {
+            _notifyManagerService.SendNotifyInWindow(_localizer.Get("Error_" + e.Error), title: title, NotificationType.Error);
+        }
+        catch (Exception)
+        {
+            _notifyManagerService.SendNotifyInWindow(_localizer.Get("Error_Unexpected"), title: title, NotificationType.Error);
+        }
+
+        return false;
     }
 }

@@ -37,10 +37,28 @@
                             <Border.ContextMenu>
                                 <ContextMenu>
                                     <MenuItem Header="{DynamicResource Home_CopyCode}" Command="{Binding CopyCommand}" />
+                                    <MenuItem Header="{DynamicResource Edit_MenuItem}" Command="{Binding EditCommand}" />
                                     <MenuItem Header="{DynamicResource Home_Delete}" Command="{Binding DeleteCommand}" />
                                 </ContextMenu>
                             </Border.ContextMenu>
                             <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                                <Popup
+                                    IsOpen="{Binding IsEditing, Mode=TwoWay}"
+                                    PlacementTarget="{Binding $parent[Border]}"
+                                    Placement="Bottom"
+                                    IsLightDismissEnabled="True">
+                                    <Border Classes="card" Padding="16" Width="320">
+                                        <StackPanel Spacing="10">
+                                            <TextBlock Text="{DynamicResource Edit_Title}" FontWeight="Bold" />
+                                            <TextBox Text="{Binding EditServiceName, Mode=TwoWay}" Watermark="{DynamicResource Edit_NameLabel}" />
+                                            <TextBox Text="{Binding EditSecretKey, Mode=TwoWay}" PasswordChar="●" Watermark="{DynamicResource Edit_SecretWatermark}" />
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                                                <Button Content="{DynamicResource Edit_Cancel}" Command="{Binding CancelEditCommand}" />
+                                                <Button Classes="default primary" Content="{DynamicResource Edit_Save}" Command="{Binding SaveEditCommand}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </Popup>
                                 <Border Grid.Column="0" Classes="avatar">
                                     <TextBlock
                                         Text="{Binding Initial}"
