@@ -31,6 +31,24 @@
                 Classes="muted"
                 Text="{DynamicResource Settings_PrivacyUnsupported}" />
 
+            <TextBlock Classes="section" Text="{DynamicResource Settings_PrivacyModeTitle}" />
+            <ToggleSwitch
+                IsChecked="{Binding PrivacyMode, Mode=TwoWay}"
+                OnContent="{DynamicResource Settings_PrivacyModeOn}"
+                OffContent="{DynamicResource Settings_PrivacyModeOff}" />
+
+            <TextBlock Classes="section" Text="{DynamicResource Settings_Appearance}" />
+            <ComboBox
+                ItemsSource="{Binding ThemeOptions}"
+                SelectedItem="{Binding SelectedTheme, Mode=TwoWay}"
+                HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ThemeOption">
+                        <TextBlock Text="{Binding Label}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
             <TextBlock Classes="section" Text="{DynamicResource Settings_Language}" />
             <ComboBox
                 ItemsSource="{Binding LanguageOptions}"

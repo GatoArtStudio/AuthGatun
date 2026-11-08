@@ -91,4 +91,33 @@ public class SettingsUseCasesTest
             new UpdateSettingsUseCase(_repository).Execute(new AppSettingsModel(false, minutes, true, "en")));
         Assert.Null(_repository.Stored);
     }
+
+    [Fact]
+    public void NewSettingsDefaultToVisibleCodesAndTheDarkTheme()
+    {
+        var settings = GetSettings().Execute();
+
+        Assert.False(settings.PrivacyMode);
+        Assert.Equal("dark", settings.Theme);
+    }
+
+    [Fact]
+    public void PrivacyModeAndThemeAreSavedAndKeptWhenTheLanguageIsDetected()
+    {
+        _repository.Stored = new AppSettings(true, 15, false, null, privacyMode: true, theme: "light");
+
+        var settings = GetSettings("es").Execute();
+
+        Assert.True(settings.PrivacyMode);
+        Assert.Equal("light", settings.Theme);
+        Assert.Equal("light", _repository.Stored!.Theme);
+    }
+
+    [Fact]
+    public void UpdateRejectsUnsupportedThemes()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            new UpdateSettingsUseCase(_repository).Execute(new AppSettingsModel(false, 5, true, "en", false, "sepia")));
+        Assert.Null(_repository.Stored);
+    }
 }

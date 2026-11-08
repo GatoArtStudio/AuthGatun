@@ -15,6 +15,13 @@ public class ReadKeysUseCase(IUserRepository repository) : IReadKeysUseCase
         if (user is null)
             throw new IdentityAccessException(IdentityAccessError.UserNotFound, "The user is invalid or does not exist.");
 
-        return user.Keys.Select(key => new KeySummary(key.Id, key.ServiceName)).ToList();
+        return user.Keys
+            .Select(key => new KeySummary(
+                key.Id,
+                key.ServiceName,
+                new TotpParametersModel(key.Parameters.Algorithm.ToString().ToUpperInvariant(), key.Parameters.Digits, key.Parameters.PeriodSeconds),
+                key.IsFavorite,
+                key.SortOrder))
+            .ToList();
     }
 }

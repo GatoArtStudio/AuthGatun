@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
+    <InternalsVisibleTo Include="AuthGatun.Tests" />
   </ItemGroup>
 
   <ItemGroup>

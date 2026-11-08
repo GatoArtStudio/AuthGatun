@@ -235,6 +235,8 @@ public sealed class SqlCipherVault : IVaultSession, IDisposable
                 command.ExecuteNonQuery();
             }
 
+            VaultSchema.Migrate(connection);
+
             _connection = connection;
             _header = header;
             _dataKey = dataKey;
@@ -262,6 +264,8 @@ public sealed class SqlCipherVault : IVaultSession, IDisposable
             CryptographicOperations.ZeroMemory(dataKey);
             return false;
         }
+
+        VaultSchema.Migrate(connection);
 
         _connection = connection;
         _header = header;

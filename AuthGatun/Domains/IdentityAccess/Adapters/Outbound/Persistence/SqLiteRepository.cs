@@ -71,12 +71,17 @@ public class SqLiteRepository(SqlCipherVault vault) : IUserRepository
                 using var command = connection.CreateCommand();
                 command.Transaction = transaction;
                 command.CommandText = @"
-                    INSERT INTO keys (id, user_id, service_name, secret_key)
-                    VALUES (@id, @userId, @serviceName, @secretKey);";
+                    INSERT INTO keys (id, user_id, service_name, secret_key, algorithm, digits, period, is_favorite, sort_order)
+                    VALUES (@id, @userId, @serviceName, @secretKey, @algorithm, @digits, @period, @isFavorite, @sortOrder);";
                 command.Parameters.AddWithValue("@id", key.Id.ToString());
                 command.Parameters.AddWithValue("@userId", key.UserId.ToString());
                 command.Parameters.AddWithValue("@serviceName", key.ServiceName);
                 command.Parameters.AddWithValue("@secretKey", key.SecretKey);
+                command.Parameters.AddWithValue("@algorithm", key.Parameters.Algorithm.ToString().ToUpperInvariant());
+                command.Parameters.AddWithValue("@digits", key.Parameters.Digits);
+                command.Parameters.AddWithValue("@period", key.Parameters.PeriodSeconds);
+                command.Parameters.AddWithValue("@isFavorite", key.IsFavorite);
+                command.Parameters.AddWithValue("@sortOrder", key.SortOrder);
                 command.ExecuteNonQuery();
             }
 
@@ -88,6 +93,18 @@ public class SqLiteRepository(SqlCipherVault vault) : IUserRepository
             transaction.Rollback();
             return false;
         }
+    }
+
+    private static TotpParameters ReadParameters(string algorithm, int digits, int period)
+    {
+        var parsed = algorithm.ToUpperInvariant() switch
+        {
+            "SHA256" => TotpAlgorithm.Sha256,
+            "SHA512" => TotpAlgorithm.Sha512,
+            _ => TotpAlgorithm.Sha1
+        };
+
+        return new TotpParameters(parsed, digits, period);
     }
 
     public List<User> ReadAll() => QueryUsers(string.Empty, null);
@@ -121,12 +138,19 @@ public class SqLiteRepository(SqlCipherVault vault) : IUserRepository
         foreach (var user in users)
         {
             using var command = connection.CreateCommand();
-            command.CommandText = "SELECT id, service_name, secret_key FROM keys WHERE user_id = @userId";
+            command.CommandText = "SELECT id, service_name, secret_key, algorithm, digits, period, is_favorite, sort_order FROM keys WHERE user_id = @userId ORDER BY sort_order, rowid";
             command.Parameters.AddWithValue("@userId", user.Id.ToString());
 
             using var reader = command.ExecuteReader();
             while (reader.Read())
-                user.AddKey(new Key(Guid.Parse(reader.GetString(0)), user.Id, reader.GetString(1), reader.GetString(2)));
+                user.AddKey(new Key(
+                    Guid.Parse(reader.GetString(0)),
+                    user.Id,
+                    reader.GetString(1),
+                    reader.GetString(2),
+                    ReadParameters(reader.GetString(3), reader.GetInt32(4), reader.GetInt32(5)),
+                    reader.GetBoolean(6),
+                    reader.GetInt32(7)));
         }
 
         return users;

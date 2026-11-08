@@ -38,6 +38,16 @@ public class JsonFileSettingsRepositoryTest : IDisposable
     }
 
     [Fact]
+    public void PrivacyModeAndThemeAreSavedAndLoadedBack()
+    {
+        var repository = new JsonFileSettingsRepository(SettingsPath);
+
+        repository.Save(new AppSettings(false, 5, true, "en", privacyMode: true, theme: "system"));
+
+        Assert.Equal(new AppSettings(false, 5, true, "en", true, "system"), repository.Load());
+    }
+
+    [Fact]
     public void SettingsSavedBeforeCaptureVisibilityExistedDefaultToHidden()
     {
         Directory.CreateDirectory(Path.GetDirectoryName(SettingsPath)!);
