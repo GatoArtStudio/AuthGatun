@@ -15,10 +15,10 @@ public class RecoverAccessUseCase(
     public AuthenticatedUser? Execute(string userName, string recoveryCode, string newPassword)
     {
         if (string.IsNullOrWhiteSpace(userName) || string.IsNullOrWhiteSpace(recoveryCode))
-            throw new ArgumentException("The username and the recovery code cannot be null or contain spaces.");
+            throw new IdentityAccessException(IdentityAccessError.InvalidRecoveryData, "The username and the recovery code cannot be null or contain spaces.");
 
         if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 8)
-            throw new ArgumentException("The new password must be at least 8 characters long.");
+            throw new IdentityAccessException(IdentityAccessError.PasswordTooShort, "The new password must be at least 8 characters long.");
 
         if (!vault.OpenWithRecoveryCode(userName, recoveryCode))
             return null;

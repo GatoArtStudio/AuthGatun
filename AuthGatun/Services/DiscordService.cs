@@ -1,9 +1,10 @@
 using System;
+using AuthGatun.Core.Localization;
 using DiscordRPC;
 
 namespace AuthGatun.Services;
 
-public class DiscordService
+public class DiscordService(ILocalizer localizer)
 {
     private DiscordRpcClient? _client;
     public string ClientId { get; private set; } = "1398030119947473037";
@@ -11,7 +12,7 @@ public class DiscordService
     
     public void UpdatePresence(
         string state = "AuthGatun",
-        string details = "Aplicacion de autenticación TOTP, desarrollada por GatoArtStudio."
+        string? details = null
         )
     {
         if (_client is null)
@@ -23,7 +24,7 @@ public class DiscordService
         _client.SetPresence(
             new RichPresence()
             {
-                Details = details,
+                Details = details ?? localizer.Get("Presence_Default"),
                 State = state,
                 Timestamps = new Timestamps()
                 {
@@ -40,12 +41,12 @@ public class DiscordService
                 {
                     new Button()
                     {
-                        Label = "Visita nuestro proyecto",
+                        Label = localizer.Get("Presence_ProjectButton"),
                         Url = "https://github.com/GatoArtStudio/AuthGatun"
                     },
                     new Button()
                     {
-                        Label = "Desarrollador",
+                        Label = localizer.Get("Presence_DeveloperButton"),
                         Url = "https://gatoartstudio.art/"
                     }
                 }

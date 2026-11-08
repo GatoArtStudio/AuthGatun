@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using AuthGatun.Domains.IdentityAccess.Adapters.Outbound.Persistence;
 using AuthGatun.Domains.IdentityAccess.Adapters.Outbound.Security;
+using AuthGatun.Domains.IdentityAccess.Application;
 using AuthGatun.Domains.IdentityAccess.Application.Models;
 using AuthGatun.Domains.IdentityAccess.Application.Ports.Outbound;
 using AuthGatun.Domains.IdentityAccess.Application.UseCases;
@@ -112,7 +113,7 @@ public class IdentityAccessUseCasesTest
     {
         RegisterUser();
 
-        Assert.Throws<ArgumentException>(() => RegisterUser());
+        Assert.Equal(IdentityAccessError.UserAlreadyExists, Assert.Throws<IdentityAccessException>(() => RegisterUser()).Error);
     }
 
     [Fact]
@@ -168,7 +169,9 @@ public class IdentityAccessUseCasesTest
         var user = RegisterUser();
         var changePassword = new ChangePasswordUseCase(_vault, _repository, _hasher);
 
-        Assert.Throws<ArgumentException>(() => changePassword.Execute(user.Id, "wrong-password", "New-password-1"));
+        Assert.Equal(
+            IdentityAccessError.WrongCurrentPassword,
+            Assert.Throws<IdentityAccessException>(() => changePassword.Execute(user.Id, "wrong-password", "New-password-1")).Error);
 
         changePassword.Execute(user.Id, "Password-testing", "New-password-1");
 
@@ -226,8 +229,9 @@ public class IdentityAccessUseCasesTest
         var codec = new AesGcmKeyBackupCodec();
         var backup = new ExportKeysUseCase(_repository, codec).Execute(user.Id, "Backup-password");
 
-        Assert.Throws<ArgumentException>(() =>
+        var error = Assert.Throws<IdentityAccessException>(() =>
             new ImportKeysUseCase(_repository, codec).Execute(user.Id, backup, "wrong-password"));
+        Assert.Equal(IdentityAccessError.WrongBackupPassword, error.Error);
     }
 
     [Fact]
@@ -235,7 +239,8 @@ public class IdentityAccessUseCasesTest
     {
         var user = RegisterUser();
 
-        Assert.Throws<ArgumentException>(() =>
+        var error = Assert.Throws<IdentityAccessException>(() =>
             new ExportKeysUseCase(_repository, new AesGcmKeyBackupCodec()).Execute(user.Id, "short"));
+        Assert.Equal(IdentityAccessError.BackupPasswordTooShort, error.Error);
     }
 }

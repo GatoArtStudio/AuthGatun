@@ -9,90 +9,102 @@
              x:CompileBindings="True">
     <ScrollViewer>
         <StackPanel Margin="20,36,20,20" Spacing="10">
-            <TextBlock Classes="section" Text="Segundo plano" />
+            <TextBlock Classes="section" Text="{DynamicResource Settings_Background}" />
             <ToggleSwitch
                 IsChecked="{Binding RunInBackground, Mode=TwoWay}"
-                OnContent="Mantener la app y la sesión en segundo plano al cerrar la ventana"
-                OffContent="Cerrar la app por completo al cerrar la ventana" />
+                OnContent="{DynamicResource Settings_BackgroundOn}"
+                OffContent="{DynamicResource Settings_BackgroundOff}" />
             <TextBlock
                 IsVisible="{Binding ShowLinuxTrayNote}"
                 TextWrapping="Wrap"
                 Opacity="0.7"
-                Text="En Linux el icono de bandeja depende del escritorio; en GNOME necesitas la extensión AppIndicator. Si no ves el icono, vuelve a ejecutar AuthGatun para traer la ventana al frente." />
+                Text="{DynamicResource Settings_LinuxTrayNote}" />
 
-            <TextBlock Classes="section" Text="Privacidad de la ventana" />
+            <TextBlock Classes="section" Text="{DynamicResource Settings_Privacy}" />
             <ToggleSwitch
                 IsEnabled="{Binding IsScreenCaptureExclusionSupported}"
                 IsChecked="{Binding HideFromScreenCapture, Mode=TwoWay}"
-                OnContent="Ventana invisible en capturas de pantalla y grabaciones"
-                OffContent="Ventana visible en capturas de pantalla y grabaciones" />
+                OnContent="{DynamicResource Settings_PrivacyOn}"
+                OffContent="{DynamicResource Settings_PrivacyOff}" />
             <TextBlock
                 IsVisible="{Binding ShowScreenCaptureUnsupportedNote}"
                 Classes="muted"
-                Text="Esta opción no está disponible en tu sistema operativo." />
+                Text="{DynamicResource Settings_PrivacyUnsupported}" />
 
-            <TextBlock Classes="section" Text="Bloqueo automático por inactividad" />
+            <TextBlock Classes="section" Text="{DynamicResource Settings_Language}" />
+            <ComboBox
+                ItemsSource="{Binding LanguageOptions}"
+                SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}"
+                HorizontalAlignment="Stretch" />
+
+            <TextBlock Classes="section" Text="{DynamicResource Settings_AutoLock}" />
             <ComboBox
                 ItemsSource="{Binding AutoLockOptions}"
                 SelectedItem="{Binding SelectedAutoLock, Mode=TwoWay}"
-                HorizontalAlignment="Stretch" />
+                HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:AutoLockOption">
+                        <TextBlock Text="{Binding Label}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
 
-            <TextBlock Classes="section" Text="Cambiar contraseña" />
+            <TextBlock Classes="section" Text="{DynamicResource Settings_ChangePassword}" />
             <TextBox
                 Text="{Binding CurrentPassword, Mode=TwoWay}"
-                Watermark="Contraseña actual"
+                Watermark="{DynamicResource Settings_CurrentPassword}"
                 PasswordChar="*"
                 Classes="default" />
             <TextBox
                 Text="{Binding NewPassword, Mode=TwoWay}"
-                Watermark="Nueva contraseña"
+                Watermark="{DynamicResource Settings_NewPassword}"
                 PasswordChar="*"
                 Classes="default" />
             <TextBox
                 Text="{Binding RepeatPassword, Mode=TwoWay}"
-                Watermark="Repetir la nueva contraseña"
+                Watermark="{DynamicResource Settings_RepeatPassword}"
                 PasswordChar="*"
                 Classes="default" />
             <Button
-                Content="Cambiar contraseña"
+                Content="{DynamicResource Settings_ChangePasswordButton}"
                 HorizontalContentAlignment="Center"
                 HorizontalAlignment="Stretch"
                 Classes="default"
                 Command="{Binding ChangePasswordCommand}" />
 
-            <TextBlock Classes="section" Text="Respaldo de claves" />
+            <TextBlock Classes="section" Text="{DynamicResource Settings_BackupTitle}" />
             <TextBlock
                 TextWrapping="Wrap"
-                Text="El respaldo se cifra con su propia contraseña. Guárdala: sin ella no se puede importar." />
+                Text="{DynamicResource Settings_BackupHint}" />
             <TextBox
                 Text="{Binding ExportPassword, Mode=TwoWay}"
-                Watermark="Contraseña del respaldo (mínimo 8 caracteres)"
+                Watermark="{DynamicResource Settings_ExportPasswordPlaceholder}"
                 PasswordChar="*"
                 Classes="default" />
             <Button
-                Content="Exportar claves"
+                Content="{DynamicResource Settings_Export}"
                 HorizontalContentAlignment="Center"
                 HorizontalAlignment="Stretch"
                 Classes="default"
                 Command="{Binding ExportKeysCommand}" />
             <TextBox
                 Text="{Binding ImportPassword, Mode=TwoWay}"
-                Watermark="Contraseña del respaldo a importar"
+                Watermark="{DynamicResource Settings_ImportPasswordPlaceholder}"
                 PasswordChar="*"
                 Classes="default" />
             <Button
-                Content="Importar claves"
+                Content="{DynamicResource Settings_Import}"
                 HorizontalContentAlignment="Center"
                 HorizontalAlignment="Stretch"
                 Classes="default"
                 Command="{Binding ImportKeysCommand}" />
 
-            <TextBlock Classes="section" Text="Código de recuperación" />
+            <TextBlock Classes="section" Text="{DynamicResource Settings_RecoveryTitle}" />
             <TextBlock
                 TextWrapping="Wrap"
-                Text="Generar uno nuevo invalida el anterior. Se muestra una sola vez, guárdalo en un lugar seguro." />
+                Text="{DynamicResource Settings_RecoveryHint}" />
             <Button
-                Content="Generar nuevo código"
+                Content="{DynamicResource Settings_GenerateRecovery}"
                 HorizontalContentAlignment="Center"
                 HorizontalAlignment="Stretch"
                 Classes="default"

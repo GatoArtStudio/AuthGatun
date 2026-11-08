@@ -11,7 +11,7 @@
              x:CompileBindings="True">
 
     <Grid Margin="20,36,20,20" RowDefinitions="Auto,*">
-        <TextBlock Grid.Row="0" Text="Tus códigos" FontSize="24" FontWeight="Bold" Margin="0,0,0,16" />
+        <TextBlock Grid.Row="0" Text="{DynamicResource Home_Title}" FontSize="24" FontWeight="Bold" Margin="0,0,0,16" />
 
         <StackPanel
             Grid.Row="1"
@@ -19,8 +19,8 @@
             VerticalAlignment="Center"
             HorizontalAlignment="Center"
             Spacing="6">
-            <TextBlock Text="Aún no tienes claves" FontSize="18" HorizontalAlignment="Center" />
-            <TextBlock Classes="muted" Text="Agrégalas desde la pestaña Keys." HorizontalAlignment="Center" />
+            <TextBlock Text="{DynamicResource Home_Empty}" FontSize="18" HorizontalAlignment="Center" />
+            <TextBlock Classes="muted" Text="{DynamicResource Home_EmptyHint}" HorizontalAlignment="Center" />
         </StackPanel>
 
         <ScrollViewer Grid.Row="1" IsVisible="{Binding HasCards}">
@@ -36,8 +36,8 @@
                             Background="Transparent">
                             <Border.ContextMenu>
                                 <ContextMenu>
-                                    <MenuItem Header="Copiar código" Command="{Binding CopyCommand}" />
-                                    <MenuItem Header="Eliminar" Command="{Binding DeleteCommand}" />
+                                    <MenuItem Header="{DynamicResource Home_CopyCode}" Command="{Binding CopyCommand}" />
+                                    <MenuItem Header="{DynamicResource Home_Delete}" Command="{Binding DeleteCommand}" />
                                 </ContextMenu>
                             </Border.ContextMenu>
                             <Grid ColumnDefinitions="Auto,*,Auto,Auto">
@@ -59,7 +59,7 @@
                                 </StackPanel>
 
                                 <Grid Grid.Column="2" Margin="0,0,14,0" Width="40" Height="40" VerticalAlignment="Center"
-                                      ToolTip.Tip="Segundos antes de que cambie el código">
+                                      ToolTip.Tip="{DynamicResource Home_CountdownTip}">
                                     <Arc
                                         Classes="countdown"
                                         Classes.expiring="{Binding IsExpiring}"
@@ -76,7 +76,7 @@
                                 <Button
                                     Grid.Column="3"
                                     Classes="default primary"
-                                    Content="Copiar"
+                                    Content="{DynamicResource Home_Copy}"
                                     VerticalAlignment="Center"
                                     Command="{Binding CopyCommand}" />
                             </Grid>

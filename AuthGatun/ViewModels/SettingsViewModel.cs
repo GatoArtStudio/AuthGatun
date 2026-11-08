@@ -5,6 +5,8 @@ using System.Linq;
 using System.Reactive;
 using System.Threading.Tasks;
 using AuthGatun.Core.AvaloniaUI;
+using AuthGatun.Core.Localization;
+using AuthGatun.Domains.IdentityAccess.Application;
 using AuthGatun.Domains.IdentityAccess.Application.Ports.Inbound;
 using AuthGatun.Domains.Settings.Domain;
 using AuthGatun.Services;
@@ -14,15 +16,22 @@ using ReactiveUI;
 
 namespace AuthGatun.ViewModels;
 
-public record AutoLockOption(int Minutes)
+public class AutoLockOption(int minutes, ILocalizer localizer) : ViewModelBase
 {
-    public override string ToString() => Minutes == 0 ? "Nunca" : $"{Minutes} min";
+    public int Minutes { get; } = minutes;
+
+    public string Label => Minutes == 0 ? localizer.Get("Settings_AutoLockNever") : localizer.Get("Settings_AutoLockMinutes", Minutes);
+
+    public void RefreshLabel() => this.RaisePropertyChanged(nameof(Label));
+}
+
+public record LanguageOption(string Code, string Name)
+{
+    public override string ToString() => Name;
 }
 
 public class SettingsViewModel : ViewModelBase
 {
-    private const string NotifyTitle = "Ajustes";
-
     private readonly IChangePasswordUseCase _changePassword;
     private readonly IRegenerateRecoveryCodeUseCase _regenerateRecoveryCode;
     private readonly IExportKeysUseCase _exportKeys;
@@ -31,12 +40,16 @@ public class SettingsViewModel : ViewModelBase
     private readonly AppSettingsState _settingsState;
     private readonly UserStatusService _userStatusService;
     private readonly NotifyManagerService _notifyManagerService;
+    private readonly ILocalizer _localizer;
+
+    private string NotifyTitle => _localizer.Get("Settings_NotifyTitle");
 
     private string _currentPassword = "";
     private string _newPassword = "";
     private string _repeatPassword = "";
     private string _recoveryCode = "";
     private AutoLockOption _selectedAutoLock;
+    private LanguageOption _selectedLanguage;
     private bool _runInBackground;
     private bool _hideFromScreenCapture;
     private string _exportPassword = "";
@@ -68,8 +81,23 @@ public class SettingsViewModel : ViewModelBase
         private set => this.RaiseAndSetIfChanged(ref _recoveryCode, value);
     }
 
-    public IReadOnlyList<AutoLockOption> AutoLockOptions { get; } =
-        AppSettings.AllowedAutoLockMinutes.Select(minutes => new AutoLockOption(minutes)).ToList();
+    public IReadOnlyList<AutoLockOption> AutoLockOptions { get; }
+
+    public IReadOnlyList<LanguageOption> LanguageOptions { get; } =
+    [
+        new("en", "English"),
+        new("es", "Español")
+    ];
+
+    public LanguageOption SelectedLanguage
+    {
+        get => _selectedLanguage;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedLanguage, value);
+            OnLanguageChanged(value);
+        }
+    }
 
     public bool RunInBackground
     {
@@ -136,9 +164,18 @@ public class SettingsViewModel : ViewModelBase
         AppSettingsState settingsState,
         UserStatusService userStatusService,
         NotifyManagerService notifyManagerService,
-        ScreenCaptureService screenCapture
+        ScreenCaptureService screenCapture,
+        ILocalizer localizer
     )
     {
+        _localizer = localizer;
+        AutoLockOptions = AppSettings.AllowedAutoLockMinutes.Select(minutes => new AutoLockOption(minutes, localizer)).ToList();
+        _selectedLanguage = LanguageOptions.FirstOrDefault(option => option.Code == settingsState.Current.Language) ?? LanguageOptions[0];
+        localizer.LanguageChanged += () =>
+        {
+            foreach (var option in AutoLockOptions)
+                option.RefreshLabel();
+        };
         _settingsState = settingsState;
         _runInBackground = settingsState.Current.RunInBackground;
         IsScreenCaptureExclusionSupported = screenCapture.IsSupported;
@@ -163,25 +200,25 @@ public class SettingsViewModel : ViewModelBase
         var user = _userStatusService.User;
         if (user is null)
         {
-            Notify("Aun no hay ningun usuario logeado", NotificationType.Error);
+            Notify(_localizer.Get("Settings_NoUser"), NotificationType.Error);
             return;
         }
 
         if (string.IsNullOrWhiteSpace(CurrentPassword) || string.IsNullOrWhiteSpace(NewPassword))
         {
-            Notify("Por favor, rellene todos los campos", NotificationType.Error);
+            Notify(_localizer.Get("Settings_FillAll"), NotificationType.Error);
             return;
         }
 
         if (NewPassword.Contains(' ') || NewPassword.Length < 8)
         {
-            Notify("La nueva contraseña debe tener al menos 8 caracteres y no contener espacios", NotificationType.Error);
+            Notify(_localizer.Get("Settings_NewPasswordInvalid"), NotificationType.Error);
             return;
         }
 
         if (NewPassword != RepeatPassword)
         {
-            Notify("La contraseña no coincide", NotificationType.Error);
+            Notify(_localizer.Get("Settings_Mismatch"), NotificationType.Error);
             return;
         }
 
@@ -191,18 +228,18 @@ public class SettingsViewModel : ViewModelBase
             CurrentPassword = "";
             NewPassword = "";
             RepeatPassword = "";
-            Notify("Contraseña actualizada con éxito", NotificationType.Success);
+            Notify(_localizer.Get("Settings_PasswordUpdated"), NotificationType.Success);
         }
-        catch (ArgumentException e)
+        catch (IdentityAccessException e)
         {
-            Notify(e.Message, NotificationType.Error);
+            Notify(_localizer.Get("Error_" + e.Error), NotificationType.Error);
         }
     }
 
     private void OnRegenerateRecoveryCode()
     {
         RecoveryCode = _regenerateRecoveryCode.Execute();
-        Notify("Nuevo código de recuperación generado, el anterior ya no sirve", NotificationType.Success);
+        Notify(_localizer.Get("Settings_RecoveryGenerated"), NotificationType.Success);
     }
 
     private async Task OnExportKeys()
@@ -211,13 +248,13 @@ public class SettingsViewModel : ViewModelBase
         var storage = _windowService.GetStorageProvider();
         if (user is null || storage is null)
         {
-            Notify("No se pudo abrir el selector de archivos", NotificationType.Error);
+            Notify(_localizer.Get("Settings_NoFilePicker"), NotificationType.Error);
             return;
         }
 
         if (string.IsNullOrWhiteSpace(ExportPassword) || ExportPassword.Length < 8)
         {
-            Notify("La contraseña del respaldo debe tener al menos 8 caracteres", NotificationType.Error);
+            Notify(_localizer.Get("Settings_ExportPasswordShort"), NotificationType.Error);
             return;
         }
 
@@ -227,7 +264,7 @@ public class SettingsViewModel : ViewModelBase
 
             var file = await storage.SaveFilePickerAsync(new FilePickerSaveOptions
             {
-                Title = "Exportar claves",
+                Title = _localizer.Get("Settings_ExportTitle"),
                 SuggestedFileName = "authgatun-backup",
                 DefaultExtension = "authgatun",
                 FileTypeChoices = [BackupFileType]
@@ -239,11 +276,15 @@ public class SettingsViewModel : ViewModelBase
             await stream.WriteAsync(backup);
 
             ExportPassword = "";
-            Notify("Respaldo exportado con éxito", NotificationType.Success);
+            Notify(_localizer.Get("Settings_Exported"), NotificationType.Success);
         }
-        catch (Exception e) when (e is ArgumentException or IOException or UnauthorizedAccessException)
+        catch (IdentityAccessException e)
         {
-            Notify(e.Message, NotificationType.Error);
+            Notify(_localizer.Get("Error_" + e.Error), NotificationType.Error);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            Notify(_localizer.Get("Error_Unexpected"), NotificationType.Error);
         }
     }
 
@@ -253,13 +294,13 @@ public class SettingsViewModel : ViewModelBase
         var storage = _windowService.GetStorageProvider();
         if (user is null || storage is null)
         {
-            Notify("No se pudo abrir el selector de archivos", NotificationType.Error);
+            Notify(_localizer.Get("Settings_NoFilePicker"), NotificationType.Error);
             return;
         }
 
         if (string.IsNullOrWhiteSpace(ImportPassword))
         {
-            Notify("Ingresa la contraseña del respaldo", NotificationType.Error);
+            Notify(_localizer.Get("Settings_ImportPasswordMissing"), NotificationType.Error);
             return;
         }
 
@@ -267,7 +308,7 @@ public class SettingsViewModel : ViewModelBase
         {
             var files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
             {
-                Title = "Importar claves",
+                Title = _localizer.Get("Settings_ImportTitle"),
                 AllowMultiple = false,
                 FileTypeFilter = [BackupFileType]
             });
@@ -280,11 +321,15 @@ public class SettingsViewModel : ViewModelBase
             var result = _importKeys.Execute(user.Id, memory.ToArray(), ImportPassword);
 
             ImportPassword = "";
-            Notify($"Claves importadas: {result.Imported}, omitidas por duplicadas o inválidas: {result.Skipped}", NotificationType.Success);
+            Notify(_localizer.Get("Settings_Imported", result.Imported, result.Skipped), NotificationType.Success);
         }
-        catch (Exception e) when (e is ArgumentException or IOException or UnauthorizedAccessException or InvalidOperationException)
+        catch (IdentityAccessException e)
         {
-            Notify(e.Message, NotificationType.Error);
+            Notify(_localizer.Get("Error_" + e.Error), NotificationType.Error);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            Notify(_localizer.Get("Error_Unexpected"), NotificationType.Error);
         }
     }
 
@@ -302,7 +347,15 @@ public class SettingsViewModel : ViewModelBase
             return;
 
         _settingsState.Update(_settingsState.Current with { HideFromScreenCapture = hide });
-        Notify(hide ? "La ventana ahora es invisible en capturas y grabaciones" : "La ventana ahora es visible en capturas y grabaciones", NotificationType.Success);
+        Notify(_localizer.Get(hide ? "Settings_CaptureHidden" : "Settings_CaptureVisible"), NotificationType.Success);
+    }
+
+    private void OnLanguageChanged(LanguageOption option)
+    {
+        if (option.Code == _settingsState.Current.Language)
+            return;
+
+        _settingsState.Update(_settingsState.Current with { Language = option.Code });
     }
 
     private void OnAutoLockChanged(AutoLockOption option)
@@ -311,7 +364,7 @@ public class SettingsViewModel : ViewModelBase
             return;
 
         _settingsState.Update(_settingsState.Current with { AutoLockMinutes = option.Minutes });
-        Notify("Bloqueo automático actualizado", NotificationType.Success);
+        Notify(_localizer.Get("Settings_AutoLockUpdated"), NotificationType.Success);
     }
 
     private void Notify(string message, NotificationType type) =>

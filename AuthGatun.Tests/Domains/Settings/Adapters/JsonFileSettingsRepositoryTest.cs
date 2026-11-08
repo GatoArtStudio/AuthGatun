@@ -3,6 +3,7 @@ using System.IO;
 using AuthGatun.Domains.Settings;
 using AuthGatun.Domains.Settings.Adapters.Outbound.JsonFile;
 using AuthGatun.Domains.Settings.Application.Ports.Inbound;
+using AuthGatun.Domains.Settings.Application.Ports.Outbound;
 using AuthGatun.Domains.Settings.Domain;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -31,9 +32,9 @@ public class JsonFileSettingsRepositoryTest : IDisposable
     {
         var repository = new JsonFileSettingsRepository(SettingsPath);
 
-        repository.Save(new AppSettings(true, 30, false));
+        repository.Save(new AppSettings(true, 30, false, "es"));
 
-        Assert.Equal(new AppSettings(true, 30, false), repository.Load());
+        Assert.Equal(new AppSettings(true, 30, false, "es"), repository.Load());
     }
 
     [Fact]
@@ -44,12 +45,13 @@ public class JsonFileSettingsRepositoryTest : IDisposable
 
         var settings = new JsonFileSettingsRepository(SettingsPath).Load();
 
-        Assert.Equal(new AppSettings(true, 15, true), settings);
+        Assert.Equal(new AppSettings(true, 15, true, null), settings);
     }
 
     [Theory]
     [InlineData("not json at all")]
     [InlineData("{\"RunInBackground\":true,\"AutoLockMinutes\":7}")]
+    [InlineData("{\"RunInBackground\":true,\"AutoLockMinutes\":5,\"Language\":\"fr\"}")]
     public void LoadReturnsNullWhenTheFileIsCorruptOrInvalid(string content)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(SettingsPath)!);
@@ -67,5 +69,6 @@ public class JsonFileSettingsRepositoryTest : IDisposable
 
         Assert.NotNull(provider.GetRequiredService<IGetSettingsUseCase>());
         Assert.NotNull(provider.GetRequiredService<IUpdateSettingsUseCase>());
+        Assert.NotNull(provider.GetRequiredService<ISystemLanguageProvider>());
     }
 }

@@ -9,8 +9,8 @@ public class UpdateSettingsUseCase(ISettingsRepository repository) : IUpdateSett
 {
     public AppSettingsModel Execute(AppSettingsModel settings)
     {
-        var validated = new AppSettings(settings.RunInBackground, settings.AutoLockMinutes, settings.HideFromScreenCapture);
+        var validated = new AppSettings(settings.RunInBackground, settings.AutoLockMinutes, settings.HideFromScreenCapture, settings.Language);
         repository.Save(validated);
-        return new AppSettingsModel(validated.RunInBackground, validated.AutoLockMinutes, validated.HideFromScreenCapture);
+        return new AppSettingsModel(validated.RunInBackground, validated.AutoLockMinutes, validated.HideFromScreenCapture, validated.Language!);
     }
 }

@@ -10,10 +10,10 @@ public class LoginUseCase(IVaultSession vault, IUserRepository repository) : ILo
     public AuthenticatedUser? Execute(string userName, string password)
     {
         if (string.IsNullOrWhiteSpace(userName))
-            throw new ArgumentException("The username cannot contain spaces or be null.");
+            throw new IdentityAccessException(IdentityAccessError.InvalidUserName, "The username cannot contain spaces or be null.");
 
         if (string.IsNullOrWhiteSpace(password))
-            throw new ArgumentException("The password cannot contain spaces or be null.");
+            throw new IdentityAccessException(IdentityAccessError.InvalidPassword, "The password cannot contain spaces or be null.");
 
         if (!vault.Open(userName, password))
             return null;
