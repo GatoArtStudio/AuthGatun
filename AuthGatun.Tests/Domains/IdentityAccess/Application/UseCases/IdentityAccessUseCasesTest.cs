@@ -161,7 +161,7 @@ public class IdentityAccessUseCasesTest
         new UpdateKeyUseCase(_publisher, _repository).Execute(new UpdateKeyRequest(user.Id, keyId, "gitlab", null));
 
         Assert.Equal("gitlab", Assert.Single(new ReadKeysUseCase(_repository).Execute(user.Id)).ServiceName);
-        Assert.Equal("code-SECRET", new GenerateTotpCodeUseCase(_repository, new FakeTotpCodeGenerator()).Execute(keyId));
+        Assert.Equal("code-SECRET-6", new GenerateTotpCodeUseCase(_repository, new FakeTotpCodeGenerator()).Execute(keyId));
     }
 
     [Fact]
@@ -171,7 +171,7 @@ public class IdentityAccessUseCasesTest
 
         new UpdateKeyUseCase(_publisher, _repository).Execute(new UpdateKeyRequest(user.Id, keyId, "github", "NEWSECRET"));
 
-        Assert.Equal("code-NEWSECRET", new GenerateTotpCodeUseCase(_repository, new FakeTotpCodeGenerator()).Execute(keyId));
+        Assert.Equal("code-NEWSECRET-6", new GenerateTotpCodeUseCase(_repository, new FakeTotpCodeGenerator()).Execute(keyId));
     }
 
     [Fact]
