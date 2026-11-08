@@ -17,4 +17,13 @@ public class ThemeServiceTest
 
     [Fact]
     public void SystemMapsToDefault() => Assert.Equal(ThemeVariant.Default, ThemeService.ResolveVariant("system"));
+
+    [Fact]
+    public void CatppuccinMochaMapsToItsOwnVariantBasedOnDark()
+    {
+        var variant = ThemeService.ResolveVariant("catppuccin-mocha");
+
+        Assert.Equal(AppThemes.CatppuccinMocha, variant);
+        Assert.Equal(ThemeVariant.Dark, variant.InheritVariant);
+    }
 }

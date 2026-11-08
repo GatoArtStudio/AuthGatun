@@ -3,6 +3,14 @@ using Avalonia.Styling;
 
 namespace AuthGatun.Services;
 
+public static class AppThemes
+{
+    public const string CatppuccinMochaCode = "catppuccin-mocha";
+
+    // Resources keyed "CatppuccinMocha" in AppStyles.axaml; any resource it does not define falls back to Dark.
+    public static readonly ThemeVariant CatppuccinMocha = new("CatppuccinMocha", ThemeVariant.Dark);
+}
+
 public class ThemeService
 {
     private readonly AppSettingsState _settings;
@@ -17,6 +25,7 @@ public class ThemeService
     {
         "light" => ThemeVariant.Light,
         "system" => ThemeVariant.Default,
+        AppThemes.CatppuccinMochaCode => AppThemes.CatppuccinMocha,
         _ => ThemeVariant.Dark
     };
 
