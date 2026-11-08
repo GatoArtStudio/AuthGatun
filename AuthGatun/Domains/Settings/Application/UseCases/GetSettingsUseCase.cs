@@ -21,7 +21,9 @@ public class GetSettingsUseCase(ISettingsRepository repository, ISystemLanguageP
                 settings.RunInBackground,
                 settings.AutoLockMinutes,
                 settings.HideFromScreenCapture,
-                language);
+                language,
+                settings.PrivacyMode,
+                settings.Theme);
             repository.Save(settings);
         }
 
@@ -29,6 +31,8 @@ public class GetSettingsUseCase(ISettingsRepository repository, ISystemLanguageP
             settings.RunInBackground,
             settings.AutoLockMinutes,
             settings.HideFromScreenCapture,
-            settings.Language!);
+            settings.Language!,
+            settings.PrivacyMode,
+            settings.Theme);
     }
 }

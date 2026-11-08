@@ -25,6 +25,20 @@ public class AutoLockOption(int minutes, ILocalizer localizer) : ViewModelBase
     public void RefreshLabel() => this.RaisePropertyChanged(nameof(Label));
 }
 
+public class ThemeOption(string code, ILocalizer localizer) : ViewModelBase
+{
+    public string Code { get; } = code;
+
+    public string Label => localizer.Get(Code switch
+    {
+        "light" => "Settings_ThemeLight",
+        "system" => "Settings_ThemeSystem",
+        _ => "Settings_ThemeDark"
+    });
+
+    public void RefreshLabel() => this.RaisePropertyChanged(nameof(Label));
+}
+
 public record LanguageOption(string Code, string Name)
 {
     public override string ToString() => Name;
@@ -49,6 +63,8 @@ public class SettingsViewModel : ViewModelBase
     private string _repeatPassword = "";
     private string _recoveryCode = "";
     private AutoLockOption _selectedAutoLock;
+    private ThemeOption _selectedTheme;
+    private bool _privacyMode;
     private LanguageOption _selectedLanguage;
     private bool _runInBackground;
     private bool _hideFromScreenCapture;
@@ -113,6 +129,30 @@ public class SettingsViewModel : ViewModelBase
 
     public bool ShowScreenCaptureUnsupportedNote => !IsScreenCaptureExclusionSupported;
 
+    public IReadOnlyList<ThemeOption> ThemeOptions { get; }
+
+    public ThemeOption SelectedTheme
+    {
+        get => _selectedTheme;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedTheme, value);
+            if (value.Code != _settingsState.Current.Theme)
+                _settingsState.Update(_settingsState.Current with { Theme = value.Code });
+        }
+    }
+
+    public bool PrivacyMode
+    {
+        get => _privacyMode;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _privacyMode, value);
+            if (value != _settingsState.Current.PrivacyMode)
+                _settingsState.Update(_settingsState.Current with { PrivacyMode = value });
+        }
+    }
+
     public bool HideFromScreenCapture
     {
         get => _hideFromScreenCapture;
@@ -169,11 +209,16 @@ public class SettingsViewModel : ViewModelBase
     )
     {
         _localizer = localizer;
+        ThemeOptions = AppSettings.SupportedThemes.Select(code => new ThemeOption(code, localizer)).ToList();
+        _selectedTheme = ThemeOptions.First(option => option.Code == settingsState.Current.Theme);
+        _privacyMode = settingsState.Current.PrivacyMode;
         AutoLockOptions = AppSettings.AllowedAutoLockMinutes.Select(minutes => new AutoLockOption(minutes, localizer)).ToList();
         _selectedLanguage = LanguageOptions.FirstOrDefault(option => option.Code == settingsState.Current.Language) ?? LanguageOptions[0];
         localizer.LanguageChanged += () =>
         {
             foreach (var option in AutoLockOptions)
+                option.RefreshLabel();
+            foreach (var option in ThemeOptions)
                 option.RefreshLabel();
         };
         _settingsState = settingsState;
