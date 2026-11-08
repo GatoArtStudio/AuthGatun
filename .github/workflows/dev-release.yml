@@ -1,0 +1,86 @@
+name: Development release
+
+on:
+  push:
+    branches:
+      - "develop"
+  workflow_dispatch:
+
+concurrency:
+  group: dev-release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    name: Compute version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute dev version
+        id: version
+        run: |
+          base=$(sed -n 's|.*<Version>\(.*\)</Version>.*|\1|p' AuthGatun/AuthGatun.csproj | head -n 1)
+          if [ -z "$base" ]; then
+            echo "Could not read <Version> from AuthGatun.csproj" >&2
+            exit 1
+          fi
+          echo "version=${base}-dev.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build binaries
+    needs: prepare
+    uses: ./.github/workflows/build-binaries.yml
+    with:
+      asset-label: dev
+      version: ${{ needs.prepare.outputs.version }}
+
+  publish:
+    name: Publish rolling dev pre-release
+    runs-on: ubuntu-latest
+    needs: [prepare, build]
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      VERSION: ${{ needs.prepare.outputs.version }}
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: linux-build
+          path: assets
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-build
+          path: assets
+
+      - name: Recreate dev pre-release
+        run: |
+          short_sha="${GITHUB_SHA::7}"
+          cat > notes.md <<NOTES
+          **Automatic development build. Not stable, do not use for anything important.**
+
+          This pre-release is rebuilt on every push to \`develop\` and may contain unfinished or broken features. For a stable version use the latest regular release.
+
+          - Version: \`${VERSION}\`
+          - Commit: ${GITHUB_SHA}
+          - Workflow run: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}
+          NOTES
+
+          gh release delete dev --cleanup-tag --yes || echo "No previous dev release to delete"
+
+          gh release create dev \
+            --target "$GITHUB_SHA" \
+            --prerelease \
+            --title "Development build ${short_sha}" \
+            --notes-file notes.md \
+            assets/AuthGatun-dev-linux-x64.zip \
+            assets/AuthGatun-dev-win-x64.zip

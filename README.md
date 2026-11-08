@@ -35,6 +35,16 @@ Las versiones estables de AuthGatun se publican en la [página de releases de Gi
 
 El proceso de release se automatiza mediante GitHub Actions. Cuando se crea un nuevo tag con el formato `v*`, se activa un flujo de trabajo que compila la aplicación para Windows y Linux, y crea una nueva release con los binarios adjuntos.
 
+### Integración continua
+
+Cada push a `main`, `release`, `develop` o `hotfix`, y cada pull request, compila la solución y ejecuta los tests tanto en Linux como en Windows. Los pull requests hacia `develop`, `release` o `main` comprueban además que la publicación Native AOT (`linux-x64` y `win-x64`) compila correctamente.
+
+### Build de desarrollo (`dev`)
+
+Cada push a la rama `develop` publica automáticamente los binarios de Windows y Linux en un pre-release con el tag `dev` ("Development build <sha>"), que se sustituye en cada nuevo push. Sus archivos son `AuthGatun-dev-linux-x64.zip` y `AuthGatun-dev-win-x64.zip`, con versión `<versión>-dev.<número de ejecución>`.
+
+> **Advertencia:** el pre-release `dev` es una build automática e inestable. Puede contener funcionalidades incompletas o errores y existe solo para probar los últimos cambios. Para uso normal descarga siempre la última release estable.
+
 ## Compilación desde el Código Fuente
 
 Si prefieres compilar la aplicación desde el código fuente, sigue estos pasos:
