@@ -1,6 +1,7 @@
 using System;
 using System.Reactive;
 using AuthGatun.Domains.IdentityAccess.Application.Models;
+using AuthGatun.Services;
 using ReactiveUI;
 
 namespace AuthGatun.ViewModels;
@@ -16,6 +17,7 @@ public class TotpCardViewModel : ViewModelBase
     private bool _isFavorite;
     private bool _canMoveUp;
     private bool _canMoveDown;
+    private readonly CodePrivacy _privacy;
 
     public Guid Id { get; }
     private string _serviceName = "";
@@ -64,6 +66,7 @@ public class TotpCardViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> ToggleFavoriteCommand { get; }
     public ReactiveCommand<Unit, Unit> MoveUpCommand { get; }
     public ReactiveCommand<Unit, Unit> MoveDownCommand { get; }
+    public ReactiveCommand<Unit, Unit> ToggleRevealCommand { get; }
 
     public TotpCardViewModel(
         TotpCodeModel model,
@@ -71,9 +74,12 @@ public class TotpCardViewModel : ViewModelBase
         Action<Guid> delete,
         Action<Guid, bool> setFavorite,
         Action<Guid, KeyMoveDirection> move,
+        IClock clock,
+        bool privacyEnabled,
         Func<Guid, string, string?, bool>? saveEdit = null)
     {
         _saveEdit = saveEdit;
+        _privacy = new CodePrivacy(clock, privacyEnabled);
         Id = model.Id;
         CopyCommand = ReactiveCommand.Create(() => copy(Id));
         DeleteCommand = ReactiveCommand.Create(() => delete(Id));
@@ -96,7 +102,43 @@ public class TotpCardViewModel : ViewModelBase
         ToggleFavoriteCommand = ReactiveCommand.Create(() => setFavorite(Id, !IsFavorite));
         MoveUpCommand = ReactiveCommand.Create(() => move(Id, KeyMoveDirection.Up));
         MoveDownCommand = ReactiveCommand.Create(() => move(Id, KeyMoveDirection.Down));
+        ToggleRevealCommand = ReactiveCommand.Create(() =>
+        {
+            _privacy.ToggleReveal();
+            RaisePrivacyChanged();
+        });
         Update(model);
+    }
+
+    public string DisplayCode => _privacy.Display(FormattedCode);
+
+    public bool PrivacyEnabled => _privacy.Enabled;
+
+    public bool IsRevealed => _privacy.IsRevealed;
+
+    public void SetPrivacyEnabled(bool enabled)
+    {
+        _privacy.SetEnabled(enabled);
+        RaisePrivacyChanged();
+    }
+
+    public void PointerEntered()
+    {
+        _privacy.PointerEntered();
+        RaisePrivacyChanged();
+    }
+
+    public void PointerLeft()
+    {
+        _privacy.PointerLeft();
+        RaisePrivacyChanged();
+    }
+
+    private void RaisePrivacyChanged()
+    {
+        this.RaisePropertyChanged(nameof(DisplayCode));
+        this.RaisePropertyChanged(nameof(PrivacyEnabled));
+        this.RaisePropertyChanged(nameof(IsRevealed));
     }
 
     public string Code
@@ -106,6 +148,7 @@ public class TotpCardViewModel : ViewModelBase
         {
             this.RaiseAndSetIfChanged(ref _code, value);
             this.RaisePropertyChanged(nameof(FormattedCode));
+            this.RaisePropertyChanged(nameof(DisplayCode));
         }
     }
 
@@ -167,5 +210,6 @@ public class TotpCardViewModel : ViewModelBase
         _periodSeconds = Math.Max(1, model.PeriodSeconds);
         Code = model.Code;
         SecondsRemaining = model.SecondsRemaining;
+        RaisePrivacyChanged();
     }
 }

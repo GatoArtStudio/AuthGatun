@@ -33,6 +33,7 @@ public class HomeViewModel : ViewModelBase
     private readonly NotifyManagerService _notifyManagerService;
     private readonly IWindowService _windowService;
     private readonly ILocalizer _localizer;
+    private readonly AppSettingsState _settingsState;
 
     private static readonly TimeSpan ClipboardClearDelay = TimeSpan.FromSeconds(30);
 
@@ -68,13 +69,15 @@ public class HomeViewModel : ViewModelBase
         NotifyManagerService notifyManagerService,
         UserStatusService userStatusService,
         IWindowService windowService,
-        ILocalizer localizer
+        ILocalizer localizer,
+        AppSettingsState settingsState
     )
     {
         _notifyManagerService = notifyManagerService;
         _userStatusService = userStatusService;
         _windowService = windowService;
         _localizer = localizer;
+        _settingsState = settingsState;
         _readTotpCodes = readTotpCodes;
         _deleteKey = deleteKey;
         _updateKey = updateKey;
@@ -96,11 +99,25 @@ public class HomeViewModel : ViewModelBase
 
     public void StartRefreshing()
     {
+        _settingsState.Changed -= ApplyPrivacyMode;
+        _settingsState.Changed += ApplyPrivacyMode;
+        ApplyPrivacyMode();
         Refresh();
         _refreshTimer.Start();
     }
 
-    public void StopRefreshing() => _refreshTimer.Stop();
+    public void StopRefreshing()
+    {
+        _refreshTimer.Stop();
+        _settingsState.Changed -= ApplyPrivacyMode;
+    }
+
+    private void ApplyPrivacyMode()
+    {
+        foreach (var card in _allCards)
+            if (card.PrivacyEnabled != _settingsState.Current.PrivacyMode)
+                card.SetPrivacyEnabled(_settingsState.Current.PrivacyMode);
+    }
 
     private void Refresh()
     {
@@ -116,7 +133,7 @@ public class HomeViewModel : ViewModelBase
         {
             var card = _allCards.FirstOrDefault(c => c.Id == model.Id);
             if (card is null)
-                card = new TotpCardViewModel(model, id => _ = OnCopyToClipboardCodeCommand(id), OnDeleteServiceKeyCommand, OnSetFavorite, OnMoveKey, OnUpdateServiceKey);
+                card = new TotpCardViewModel(model, id => _ = OnCopyToClipboardCodeCommand(id), OnDeleteServiceKeyCommand, OnSetFavorite, OnMoveKey, SystemClock.Instance, _settingsState.Current.PrivacyMode, OnUpdateServiceKey);
             else
                 card.Update(model);
             ordered.Add(card);
