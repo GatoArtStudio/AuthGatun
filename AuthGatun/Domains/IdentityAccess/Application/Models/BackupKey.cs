@@ -1,3 +1,3 @@
 namespace AuthGatun.Domains.IdentityAccess.Application.Models;
 
-public record BackupKey(string ServiceName, string SecretKey);
+public record BackupKey(string ServiceName, string SecretKey, TotpParametersModel? Parameters = null);

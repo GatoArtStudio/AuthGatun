@@ -14,6 +14,6 @@ public class GenerateTotpCodeUseCase(IUserRepository repository, ITotpCodeGenera
             .SelectMany(user => user.Keys)
             .FirstOrDefault(k => k.Id == keyId);
 
-        return key is null ? null : totpCodeGenerator.Generate(key.SecretKey);
+        return key is null ? null : totpCodeGenerator.Generate(key.SecretKey, key.Parameters);
     }
 }

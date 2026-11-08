@@ -40,6 +40,10 @@
             Watermark="{DynamicResource Keys_SecretPlaceholder}"
             Classes="default"
             Text="{Binding TotpKey, Mode=TwoWay}"/>
+        <TextBlock
+            Classes="muted"
+            Text="{Binding ParametersHint}"
+            IsVisible="{Binding ParametersHint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
         <Button 
             Content="{DynamicResource Keys_Save}"
             HorizontalContentAlignment="Center"

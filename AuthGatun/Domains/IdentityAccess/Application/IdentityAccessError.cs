@@ -18,5 +18,8 @@ public enum IdentityAccessError
     QrNotOtpAuth,
     QrInvalidSecret,
     QrUnsupportedParameters,
-    ImageUnreadable
+    ImageUnreadable,
+    MigrationInvalidData,
+    MigrationNoSupportedKeys,
+    DuplicateKey
 }

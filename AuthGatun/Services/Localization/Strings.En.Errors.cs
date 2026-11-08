@@ -22,7 +22,10 @@ public static partial class StringsEnglish
             ["Error_QrNotFound"] = "No QR code was found in the image",
             ["Error_QrNotOtpAuth"] = "The QR code is not a two-step verification key",
             ["Error_QrInvalidSecret"] = "The QR code does not contain a valid secret key",
-            ["Error_QrUnsupportedParameters"] = "This key uses settings that are not supported yet (only 6 digits, 30 seconds and SHA1)",
+            ["Error_QrUnsupportedParameters"] = "This key uses settings that are not supported (algorithm, digits or period out of range, or not a time-based key)",
             ["Error_ImageUnreadable"] = "The image could not be read",
+            ["Error_MigrationInvalidData"] = "The migration QR code is not valid or is corrupted",
+            ["Error_MigrationNoSupportedKeys"] = "The migration QR code has no supported keys (only time-based keys with SHA1, SHA256 or SHA512)",
+            ["Error_DuplicateKey"] = "That key is already saved",
     };
 }

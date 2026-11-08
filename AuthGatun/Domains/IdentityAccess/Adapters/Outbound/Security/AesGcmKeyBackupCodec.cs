@@ -25,7 +25,7 @@ public partial class AesGcmKeyBackupCodec : IKeyBackupCodec
 
     public byte[] Encode(IReadOnlyList<BackupKey> keys, string password)
     {
-        var payload = new BackupPayload(FormatVersion, keys.Select(k => new BackupEntry(k.ServiceName, k.SecretKey)).ToList());
+        var payload = new BackupPayload(FormatVersion, keys.Select(ToEntry).ToList());
         var plaintext = JsonSerializer.SerializeToUtf8Bytes(payload, BackupJsonContext.Default.BackupPayload);
 
         var salt = RandomNumberGenerator.GetBytes(SaltSize);
@@ -70,9 +70,9 @@ public partial class AesGcmKeyBackupCodec : IKeyBackupCodec
             if (payload is null || payload.Version != FormatVersion)
                 return null;
 
-            return payload.Keys.Select(e => new BackupKey(e.ServiceName, e.SecretKey)).ToList();
+            return payload.Keys.Select(ToBackupKey).ToList();
         }
-        catch (Exception e) when (e is CryptographicException or JsonException)
+        catch (Exception e) when (e is CryptographicException or JsonException or ArgumentException)
         {
             return null;
         }
@@ -105,10 +105,32 @@ public partial class AesGcmKeyBackupCodec : IKeyBackupCodec
         }
     }
 
-    internal sealed record BackupEntry(string ServiceName, string SecretKey);
+    private static BackupEntry ToEntry(BackupKey key) =>
+        new(key.ServiceName, key.SecretKey, key.Parameters?.Algorithm, key.Parameters?.Digits, key.Parameters?.PeriodSeconds);
+
+    private static BackupKey ToBackupKey(BackupEntry entry)
+    {
+        if (entry.Algorithm is null && entry.Digits is null && entry.PeriodSeconds is null)
+            return new BackupKey(entry.ServiceName, entry.SecretKey);
+
+        var parameters = new TotpParametersModel(
+            entry.Algorithm ?? TotpParametersModel.Default.Algorithm,
+            entry.Digits ?? TotpParametersModel.Default.Digits,
+            entry.PeriodSeconds ?? TotpParametersModel.Default.PeriodSeconds);
+        parameters.ToDomain();
+        return new BackupKey(entry.ServiceName, entry.SecretKey, parameters);
+    }
+
+    internal sealed record BackupEntry(
+        string ServiceName,
+        string SecretKey,
+        string? Algorithm = null,
+        int? Digits = null,
+        int? PeriodSeconds = null);
 
     internal sealed record BackupPayload(int Version, List<BackupEntry> Keys);
 
+    [JsonSourceGenerationOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonSerializable(typeof(BackupPayload))]
     internal sealed partial class BackupJsonContext : JsonSerializerContext;
 }

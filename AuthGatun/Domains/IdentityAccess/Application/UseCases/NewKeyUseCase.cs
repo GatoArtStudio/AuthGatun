@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using AuthGatun.Domains.IdentityAccess.Application.Models;
 using AuthGatun.Domains.IdentityAccess.Application.Ports.Inbound;
 using AuthGatun.Domains.IdentityAccess.Application.Ports.Outbound;
@@ -13,7 +14,10 @@ public class NewKeyUseCase(IDomainEventPublisher publisher, IUserRepository repo
         var user = repository.Read(request.UserId);
         if (user is null) throw new IdentityAccessException(IdentityAccessError.UserNotFound, "IdentityAccess not found");
 
-        user.AddKey(new Key(Guid.NewGuid(), request.UserId, request.ServiceName, request.SecretKey));
+        if (request.RejectDuplicate && user.Keys.Any(k => k.ServiceName == request.ServiceName && k.SecretKey == request.SecretKey))
+            throw new IdentityAccessException(IdentityAccessError.DuplicateKey, "The key already exists.");
+
+        user.AddKey(new Key(Guid.NewGuid(), request.UserId, request.ServiceName, request.SecretKey, request.Parameters?.ToDomain()));
         repository.Save(user);
 
         foreach (var domainEvent in user.UncommittedEvents)

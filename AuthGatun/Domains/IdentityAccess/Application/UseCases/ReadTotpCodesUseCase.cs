@@ -16,15 +16,13 @@ public class ReadTotpCodesUseCase(IUserRepository repository, ITotpCodeGenerator
         if (user is null)
             throw new IdentityAccessException(IdentityAccessError.UserNotFound, "The user is invalid or does not exist.");
 
-        var secondsRemaining = totpCodeGenerator.RemainingSeconds();
-
         return user.Keys
             .Select(key => new TotpCodeModel(
                 key.Id,
                 key.ServiceName,
-                totpCodeGenerator.Generate(key.SecretKey),
-                secondsRemaining,
-                totpCodeGenerator.PeriodSeconds,
+                totpCodeGenerator.Generate(key.SecretKey, key.Parameters),
+                totpCodeGenerator.RemainingSeconds(key.Parameters),
+                key.Parameters.PeriodSeconds,
                 key.IsFavorite,
                 key.SortOrder))
             .ToList();

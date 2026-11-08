@@ -15,7 +15,7 @@ public class OtpAuthUriTest
     public void ParsesValidLinks(string text, string serviceName, string secret)
     {
         Assert.Equal(OtpAuthUriProblem.None, OtpAuthUri.TryParse(text, out var uri));
-        Assert.Equal(new OtpAuthUri(serviceName, secret), uri);
+        Assert.Equal(new OtpAuthUri(serviceName, secret, TotpParameters.Default), uri);
     }
 
     [Fact]
@@ -49,9 +49,23 @@ public class OtpAuthUriTest
     }
 
     [Theory]
-    [InlineData("otpauth://totp/A:b?secret=JBSWY3DPEHPK3PXP&algorithm=SHA256")]
-    [InlineData("otpauth://totp/A:b?secret=JBSWY3DPEHPK3PXP&digits=8")]
-    [InlineData("otpauth://totp/A:b?secret=JBSWY3DPEHPK3PXP&period=60")]
+    [InlineData("algorithm=SHA256", TotpAlgorithm.Sha256, 6, 30)]
+    [InlineData("algorithm=sha512&digits=8", TotpAlgorithm.Sha512, 8, 30)]
+    [InlineData("digits=7&period=60", TotpAlgorithm.Sha1, 7, 60)]
+    [InlineData("period=300", TotpAlgorithm.Sha1, 6, 300)]
+    public void AcceptsNonDefaultParameters(string query, TotpAlgorithm algorithm, int digits, int period)
+    {
+        Assert.Equal(OtpAuthUriProblem.None, OtpAuthUri.TryParse("otpauth://totp/A:b?secret=JBSWY3DPEHPK3PXP&" + query, out var uri));
+        Assert.Equal(new TotpParameters(algorithm, digits, period), uri!.Parameters);
+    }
+
+    [Theory]
+    [InlineData("otpauth://totp/A:b?secret=JBSWY3DPEHPK3PXP&algorithm=MD5")]
+    [InlineData("otpauth://totp/A:b?secret=JBSWY3DPEHPK3PXP&digits=5")]
+    [InlineData("otpauth://totp/A:b?secret=JBSWY3DPEHPK3PXP&digits=9")]
+    [InlineData("otpauth://totp/A:b?secret=JBSWY3DPEHPK3PXP&digits=abc")]
+    [InlineData("otpauth://totp/A:b?secret=JBSWY3DPEHPK3PXP&period=0")]
+    [InlineData("otpauth://totp/A:b?secret=JBSWY3DPEHPK3PXP&period=301")]
     [InlineData("otpauth://hotp/A:b?secret=JBSWY3DPEHPK3PXP&counter=1")]
     public void RejectsParametersThatCannotBeGenerated(string text)
     {

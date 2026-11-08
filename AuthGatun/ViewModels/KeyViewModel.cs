@@ -29,6 +29,8 @@ public class KeyViewModel : ViewModelBase
 
     private string _serviceName = "";
     private string _totpKey = "";
+    private TotpParametersModel? _scannedParameters;
+    private string _scannedSecret = "";
 
     public string ServiceName
     {
@@ -39,8 +41,18 @@ public class KeyViewModel : ViewModelBase
     public string TotpKey
     {
         get => _totpKey;
-        set => this.RaiseAndSetIfChanged(ref _totpKey, value);
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _totpKey, value);
+            if (_scannedParameters is not null && value != _scannedSecret)
+                ClearScannedParameters();
+        }
     }
+
+    public string ParametersHint =>
+        _scannedParameters is null || _scannedParameters.IsDefault
+            ? ""
+            : _localizer.Get("Parameters_Hint", _scannedParameters.Algorithm, _scannedParameters.Digits, _scannedParameters.PeriodSeconds);
     
     public ReactiveCommand<Unit, Unit> SaveKeyCommand { get; }
     public ReactiveCommand<Unit, Unit> ScanFromClipboardCommand { get; }
@@ -94,10 +106,11 @@ public class KeyViewModel : ViewModelBase
 
         try
         {
-            _newKey.Execute(new NewKeyRequest(user.Id, ServiceName, TotpKey));
+            _newKey.Execute(new NewKeyRequest(user.Id, ServiceName, TotpKey, _scannedParameters));
             _notifyManagerService.SendNotifyInWindow(_localizer.Get("Keys_Saved"), title: _localizer.Get("Keys_NotifyTitle"), NotificationType.Success);
             ServiceName = "";
             TotpKey = "";
+            ClearScannedParameters();
         }
         catch (IdentityAccessException e)
         {
@@ -111,7 +124,7 @@ public class KeyViewModel : ViewModelBase
 
     public async Task ScanDroppedFileAsync(IStorageFile file)
     {
-        await RunScanAsync(async () => _scanKeyFromQr.ScanImage(await ReadFileAsync(file)));
+        await RunScanAsync(async () => _scanKeyFromQr.ScanImageForKeys(await ReadFileAsync(file)));
     }
 
     private async Task OnScanFromClipboard()
@@ -136,13 +149,13 @@ public class KeyViewModel : ViewModelBase
 
         if (content.Image is not null)
         {
-            await RunScanAsync(() => Task.FromResult(_scanKeyFromQr.ScanImage(content.Image)));
+            await RunScanAsync(() => Task.FromResult(_scanKeyFromQr.ScanImageForKeys(content.Image)));
             return;
         }
 
         if (!string.IsNullOrWhiteSpace(content.Text))
         {
-            await RunScanAsync(() => Task.FromResult(_scanKeyFromQr.ParseLink(content.Text)));
+            await RunScanAsync(() => Task.FromResult(_scanKeyFromQr.ParseLinkForKeys(content.Text)));
             return;
         }
 
@@ -170,14 +183,24 @@ public class KeyViewModel : ViewModelBase
         await ScanDroppedFileAsync(files[0]);
     }
 
-    private async Task RunScanAsync(Func<Task<ScannedKeyModel>> scan)
+    private async Task RunScanAsync(Func<Task<ScanResultModel>> scan)
     {
         try
         {
-            var key = await scan();
-            ServiceName = key.ServiceName;
-            TotpKey = key.SecretKey;
-            Notify("Keys_ScanSuccess", NotificationType.Success);
+            var result = await scan();
+            if (result.Keys.Count == 1)
+            {
+                var key = result.Keys[0];
+                ServiceName = key.ServiceName;
+                TotpKey = key.SecretKey;
+                _scannedSecret = key.SecretKey;
+                _scannedParameters = key.Parameters;
+                this.RaisePropertyChanged(nameof(ParametersHint));
+                Notify("Keys_ScanSuccess", NotificationType.Success);
+                return;
+            }
+
+            ImportScannedKeys(result);
         }
         catch (IdentityAccessException e)
         {
@@ -195,6 +218,42 @@ public class KeyViewModel : ViewModelBase
         {
             Notify("Error_Unexpected", NotificationType.Error);
         }
+    }
+
+    private void ClearScannedParameters()
+    {
+        _scannedParameters = null;
+        _scannedSecret = "";
+        this.RaisePropertyChanged(nameof(ParametersHint));
+    }
+
+    private void ImportScannedKeys(ScanResultModel result)
+    {
+        var user = _userStatusService.User;
+        if (user is null)
+        {
+            Notify("Keys_NoUser", NotificationType.Error);
+            return;
+        }
+
+        var imported = 0;
+        var skipped = result.Unsupported;
+        foreach (var key in result.Keys)
+        {
+            try
+            {
+                _newKey.Execute(new NewKeyRequest(user.Id, key.ServiceName, key.SecretKey, key.Parameters, RejectDuplicate: true));
+                imported++;
+            }
+            catch (IdentityAccessException e) when (e.Error == IdentityAccessError.DuplicateKey)
+            {
+                skipped++;
+            }
+        }
+
+        var messageKey = imported > 0 ? "Parameters_MigrationResult" : "Parameters_MigrationNothing";
+        var message = imported > 0 ? _localizer.Get(messageKey, imported, skipped) : _localizer.Get(messageKey, skipped);
+        _notifyManagerService.SendNotifyInWindow(message, title: _localizer.Get("Keys_NotifyTitle"), imported > 0 ? NotificationType.Success : NotificationType.Warning);
     }
 
     private static async Task<byte[]> ReadFileAsync(IStorageFile file)
