@@ -129,5 +129,17 @@ public static class StringsSpanish
         ["Error_WrongBackupPassword"] = "Contraseña del respaldo incorrecta o el archivo no es un respaldo válido",
         ["Error_InvalidRecoveryData"] = "El usuario y el código de recuperación no pueden estar vacíos",
         ["Error_SaveFailed"] = "No se pudieron guardar los datos",
+        ["Error_QrNotFound"] = "No se encontró ningún código QR en la imagen",
+        ["Error_QrNotOtpAuth"] = "El código QR no es una clave de verificación en dos pasos",
+        ["Error_QrInvalidSecret"] = "El código QR no contiene una clave secreta válida",
+        ["Error_QrUnsupportedParameters"] = "Esta clave usa ajustes que aún no se admiten (solo 6 dígitos, 30 segundos y SHA1)",
+        ["Error_ImageUnreadable"] = "No se pudo leer la imagen",
+        ["Keys_ScanFromClipboard"] = "Escanear QR del portapapeles",
+        ["Keys_ScanFromFile"] = "Escanear QR desde un archivo de imagen",
+        ["Keys_DropHint"] = "o suelta aquí una imagen con el código QR",
+        ["Keys_ScanSuccess"] = "QR leído. Revisa el nombre y guarda la clave.",
+        ["Keys_NoClipboardContent"] = "El portapapeles no tiene una imagen ni un enlace otpauth para leer",
+        ["Keys_FileTooLarge"] = "La imagen es demasiado grande (máximo 10 MB)",
+        ["Keys_PickerTitle"] = "Elige una imagen con un código QR",
     };
 }

@@ -1,11 +1,15 @@
 using System;
+using System.IO;
 using System.Reactive;
+using System.Threading.Tasks;
+using AuthGatun.Core.AvaloniaUI;
 using AuthGatun.Core.Localization;
 using AuthGatun.Domains.IdentityAccess.Application;
 using AuthGatun.Domains.IdentityAccess.Application.Ports.Inbound;
 using AuthGatun.Domains.IdentityAccess.Application.Models;
 using AuthGatun.Services;
 using Avalonia.Controls.Notifications;
+using Avalonia.Platform.Storage;
 using ReactiveUI;
 
 namespace AuthGatun.ViewModels;
@@ -17,6 +21,11 @@ public class KeyViewModel : ViewModelBase
     private readonly NotifyManagerService _notifyManagerService;
     private readonly UserStatusService _userStatusService;
     private readonly ILocalizer _localizer;
+    private readonly IScanKeyFromQrUseCase _scanKeyFromQr;
+    private readonly IWindowService _windowService;
+
+    private const long MaxImageBytes = 10 * 1024 * 1024;
+    private static readonly FilePickerFileType ImageFileType = new("Images") { Patterns = ["*.png", "*.jpg", "*.jpeg", "*.bmp", "*.webp", "*.gif"] };
 
     private string _serviceName = "";
     private string _totpKey = "";
@@ -34,21 +43,29 @@ public class KeyViewModel : ViewModelBase
     }
     
     public ReactiveCommand<Unit, Unit> SaveKeyCommand { get; }
+    public ReactiveCommand<Unit, Unit> ScanFromClipboardCommand { get; }
+    public ReactiveCommand<Unit, Unit> ScanFromFileCommand { get; }
 
     public KeyViewModel(
         DiscordService discordService,
         INewKeyUseCase newKey,
         NotifyManagerService notifyManagerService,
         UserStatusService userStatusService,
-        ILocalizer localizer
+        ILocalizer localizer,
+        IScanKeyFromQrUseCase scanKeyFromQr,
+        IWindowService windowService
     )
     {
+        _scanKeyFromQr = scanKeyFromQr;
+        _windowService = windowService;
         _userStatusService = userStatusService;
         _localizer = localizer;
         _notifyManagerService = notifyManagerService;
         _newKey = newKey;
 
         SaveKeyCommand = ReactiveCommand.Create(OnSaveKeyCommand);
+        ScanFromClipboardCommand = ReactiveCommand.CreateFromTask(OnScanFromClipboard);
+        ScanFromFileCommand = ReactiveCommand.CreateFromTask(OnScanFromFile);
         
         var user = _userStatusService.User;
         discordService.UpdatePresence(user?.UserName ?? "AuthGatun", _localizer.Get("Presence_Keys"));
@@ -79,6 +96,8 @@ public class KeyViewModel : ViewModelBase
         {
             _newKey.Execute(new NewKeyRequest(user.Id, ServiceName, TotpKey));
             _notifyManagerService.SendNotifyInWindow(_localizer.Get("Keys_Saved"), title: _localizer.Get("Keys_NotifyTitle"), NotificationType.Success);
+            ServiceName = "";
+            TotpKey = "";
         }
         catch (IdentityAccessException e)
         {
@@ -89,4 +108,111 @@ public class KeyViewModel : ViewModelBase
             _notifyManagerService.SendNotifyInWindow(_localizer.Get("Error_Unexpected"), title: _localizer.Get("Keys_NotifyTitle"), NotificationType.Error);
         }
     }
+
+    public async Task ScanDroppedFileAsync(IStorageFile file)
+    {
+        await RunScanAsync(async () => _scanKeyFromQr.ScanImage(await ReadFileAsync(file)));
+    }
+
+    private async Task OnScanFromClipboard()
+    {
+        var clipboard = _windowService.GetClipboard();
+        if (clipboard is null)
+        {
+            Notify("Keys_NoClipboardContent", NotificationType.Error);
+            return;
+        }
+
+        ClipboardContent content;
+        try
+        {
+            content = await ClipboardContentReader.ReadAsync(clipboard);
+        }
+        catch (Exception)
+        {
+            Notify("Keys_NoClipboardContent", NotificationType.Error);
+            return;
+        }
+
+        if (content.Image is not null)
+        {
+            await RunScanAsync(() => Task.FromResult(_scanKeyFromQr.ScanImage(content.Image)));
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(content.Text))
+        {
+            await RunScanAsync(() => Task.FromResult(_scanKeyFromQr.ParseLink(content.Text)));
+            return;
+        }
+
+        Notify("Keys_NoClipboardContent", NotificationType.Error);
+    }
+
+    private async Task OnScanFromFile()
+    {
+        var storage = _windowService.GetStorageProvider();
+        if (storage is null)
+        {
+            Notify("Settings_NoFilePicker", NotificationType.Error);
+            return;
+        }
+
+        var files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = _localizer.Get("Keys_PickerTitle"),
+            AllowMultiple = false,
+            FileTypeFilter = [ImageFileType]
+        });
+        if (files.Count == 0)
+            return;
+
+        await ScanDroppedFileAsync(files[0]);
+    }
+
+    private async Task RunScanAsync(Func<Task<ScannedKeyModel>> scan)
+    {
+        try
+        {
+            var key = await scan();
+            ServiceName = key.ServiceName;
+            TotpKey = key.SecretKey;
+            Notify("Keys_ScanSuccess", NotificationType.Success);
+        }
+        catch (IdentityAccessException e)
+        {
+            Notify("Error_" + e.Error, NotificationType.Error);
+        }
+        catch (FileTooLargeException)
+        {
+            Notify("Keys_FileTooLarge", NotificationType.Error);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            Notify("Error_ImageUnreadable", NotificationType.Error);
+        }
+        catch (Exception)
+        {
+            Notify("Error_Unexpected", NotificationType.Error);
+        }
+    }
+
+    private static async Task<byte[]> ReadFileAsync(IStorageFile file)
+    {
+        await using var stream = await file.OpenReadAsync();
+        if (stream.CanSeek && stream.Length > MaxImageBytes)
+            throw new FileTooLargeException();
+
+        using var memory = new MemoryStream();
+        await stream.CopyToAsync(memory);
+        if (memory.Length > MaxImageBytes)
+            throw new FileTooLargeException();
+
+        return memory.ToArray();
+    }
+
+    private void Notify(string messageKey, NotificationType type) =>
+        _notifyManagerService.SendNotifyInWindow(_localizer.Get(messageKey), title: _localizer.Get("Keys_NotifyTitle"), type);
+
+    private sealed class FileTooLargeException : Exception;
 }

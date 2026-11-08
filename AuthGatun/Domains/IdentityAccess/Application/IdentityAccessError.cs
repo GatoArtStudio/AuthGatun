@@ -12,5 +12,10 @@ public enum IdentityAccessError
     InvalidBackupPassword,
     WrongBackupPassword,
     InvalidRecoveryData,
-    SaveFailed
+    SaveFailed,
+    QrNotFound,
+    QrNotOtpAuth,
+    QrInvalidSecret,
+    QrUnsupportedParameters,
+    ImageUnreadable
 }

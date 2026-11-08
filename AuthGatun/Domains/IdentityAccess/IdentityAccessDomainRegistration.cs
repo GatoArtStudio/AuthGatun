@@ -2,6 +2,7 @@ using AuthGatun.Domains.IdentityAccess.Adapters.Outbound.EventBus;
 using AuthGatun.Domains.IdentityAccess.Adapters.Outbound.Persistence;
 using AuthGatun.Domains.IdentityAccess.Adapters.Outbound.Security;
 using AuthGatun.Domains.IdentityAccess.Adapters.Outbound.Otp;
+using AuthGatun.Domains.IdentityAccess.Adapters.Outbound.QrCode;
 using AuthGatun.Domains.IdentityAccess.Application.Ports.Inbound;
 using AuthGatun.Domains.IdentityAccess.Application.Ports.Outbound;
 using AuthGatun.Domains.IdentityAccess.Application.UseCases;
@@ -32,6 +33,7 @@ public static class IdentityAccessDomainRegistration
         services.AddSingleton<IPasswordHasher, Argon2PasswordHasher>();
         services.AddSingleton<ITotpCodeGenerator, OtpNetTotpCodeGenerator>();
         services.AddSingleton<IKeyBackupCodec, AesGcmKeyBackupCodec>();
+        services.AddSingleton<IQrCodeReader, ZXingQrCodeReader>();
 
         services.AddTransient<ILoginUseCase, LoginUseCase>();
         services.AddTransient<IRegisterUseCase, RegisterUserUseCase>();
@@ -46,6 +48,7 @@ public static class IdentityAccessDomainRegistration
         services.AddTransient<IReadKeysUseCase, ReadKeysUseCase>();
         services.AddTransient<IGenerateTotpCodeUseCase, GenerateTotpCodeUseCase>();
         services.AddTransient<IReadTotpCodesUseCase, ReadTotpCodesUseCase>();
+        services.AddTransient<IScanKeyFromQrUseCase, ScanKeyFromQrUseCase>();
 
         return services;
     }
