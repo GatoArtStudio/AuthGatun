@@ -55,6 +55,7 @@ public static partial class StringsSpanish
             ["Settings_Appearance"] = "Apariencia",
             ["Settings_ThemeDark"] = "Oscuro",
             ["Settings_ThemeLight"] = "Claro",
+            ["Settings_ThemeCatppuccinMocha"] = "Catppuccin Mocha",
             ["Settings_ThemeSystem"] = "Igual que el sistema",
     };
 }

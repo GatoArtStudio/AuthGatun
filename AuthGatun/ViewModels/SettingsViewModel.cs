@@ -33,6 +33,7 @@ public class ThemeOption(string code, ILocalizer localizer) : ViewModelBase
     {
         "light" => "Settings_ThemeLight",
         "system" => "Settings_ThemeSystem",
+        "catppuccin-mocha" => "Settings_ThemeCatppuccinMocha",
         _ => "Settings_ThemeDark"
     });
 

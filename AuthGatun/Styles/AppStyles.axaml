@@ -1,5 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:services="clr-namespace:AuthGatun.Services">
 
     <Styles.Resources>
         <ResourceDictionary>
@@ -43,6 +44,51 @@
                     <SolidColorBrush x:Key="AvatarBrush" Color="#334350D0" />
                     <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#D9FFFFFF" />
                     <SolidColorBrush x:Key="DockBackgroundBrush" Color="#0F000000" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="{x:Static services:AppThemes.CatppuccinMocha}">
+                    <Color x:Key="AccentColor">#CBA6F7</Color>
+                    <Color x:Key="WarningColor">#FAB387</Color>
+                    <Color x:Key="DangerColor">#F38BA8</Color>
+                    <SolidColorBrush x:Key="AccentBrush" Color="#CBA6F7" />
+                    <SolidColorBrush x:Key="AccentHoverBrush" Color="#D8BDF9" />
+                    <SolidColorBrush x:Key="OnAccentBrush" Color="#11111B" />
+                    <SolidColorBrush x:Key="WarningBrush" Color="#FAB387" />
+                    <SolidColorBrush x:Key="DangerBrush" Color="#F38BA8" />
+                    <SolidColorBrush x:Key="CardBrush" Color="#B3313244" />
+                    <SolidColorBrush x:Key="CardHoverBrush" Color="#E6313244" />
+                    <SolidColorBrush x:Key="CardBorderBrush" Color="#45475A" />
+                    <SolidColorBrush x:Key="InputBrush" Color="#99181825" />
+                    <SolidColorBrush x:Key="ButtonBrush" Color="#B3313244" />
+                    <SolidColorBrush x:Key="ButtonHoverBrush" Color="#E645475A" />
+                    <SolidColorBrush x:Key="AvatarBrush" Color="#33CBA6F7" />
+                    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#F21E1E2E" />
+                    <SolidColorBrush x:Key="DockBackgroundBrush" Color="#CC181825" />
+
+                    <Color x:Key="SystemAccentColor">#CBA6F7</Color>
+                    <Color x:Key="SystemAccentColorLight1">#D8BDF9</Color>
+                    <Color x:Key="SystemAccentColorLight2">#E4D2FB</Color>
+                    <Color x:Key="SystemAccentColorLight3">#F0E6FD</Color>
+                    <Color x:Key="SystemAccentColorDark1">#B48AE6</Color>
+                    <Color x:Key="SystemAccentColorDark2">#9B6FD0</Color>
+                    <Color x:Key="SystemAccentColorDark3">#7F56B3</Color>
+                    <Color x:Key="SystemBaseHighColor">#CDD6F4</Color>
+                    <Color x:Key="SystemBaseMediumHighColor">#BAC2DE</Color>
+                    <Color x:Key="SystemBaseMediumColor">#A6ADC8</Color>
+                    <Color x:Key="SystemBaseMediumLowColor">#7F849C</Color>
+                    <Color x:Key="SystemBaseLowColor">#45475A</Color>
+                    <Color x:Key="SystemChromeAltLowColor">#181825</Color>
+                    <Color x:Key="SystemChromeLowColor">#181825</Color>
+                    <Color x:Key="SystemChromeMediumLowColor">#1E1E2E</Color>
+                    <Color x:Key="SystemChromeMediumColor">#313244</Color>
+                    <Color x:Key="SystemChromeHighColor">#45475A</Color>
+                    <Color x:Key="SystemChromeDisabledHighColor">#313244</Color>
+                    <Color x:Key="SystemListLowColor">#313244</Color>
+                    <Color x:Key="SystemListMediumColor">#45475A</Color>
+                    <SolidColorBrush x:Key="SystemControlForegroundBaseHighBrush" Color="#CDD6F4" />
+                    <SolidColorBrush x:Key="SystemControlForegroundBaseMediumBrush" Color="#A6ADC8" />
+                    <SolidColorBrush x:Key="SystemControlForegroundBaseMediumHighBrush" Color="#BAC2DE" />
+                    <SolidColorBrush x:Key="SystemControlForegroundBaseMediumLowBrush" Color="#7F849C" />
+                    <SolidColorBrush x:Key="SystemControlForegroundBaseLowBrush" Color="#45475A" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
         </ResourceDictionary>

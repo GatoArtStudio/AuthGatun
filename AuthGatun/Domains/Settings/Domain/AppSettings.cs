@@ -14,7 +14,7 @@ public sealed record AppSettings
 
     public const string DefaultTheme = "dark";
 
-    public static readonly IReadOnlyList<string> SupportedThemes = ["dark", "light", "system"];
+    public static readonly IReadOnlyList<string> SupportedThemes = ["dark", "light", "system", "catppuccin-mocha"];
 
     public static AppSettings Default => new(false, 5, true, null);
 
