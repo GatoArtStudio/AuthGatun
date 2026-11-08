@@ -34,7 +34,7 @@ public class ImportKeysUseCase(IUserRepository repository, IKeyBackupCodec codec
                 continue;
             }
 
-            user.AddKey(new Key(Guid.NewGuid(), userId, key.ServiceName, key.SecretKey));
+            user.AddKey(new Key(Guid.NewGuid(), userId, key.ServiceName, key.SecretKey, key.Parameters?.ToDomain()));
             imported++;
         }
 

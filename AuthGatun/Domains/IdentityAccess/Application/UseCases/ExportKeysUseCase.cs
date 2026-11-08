@@ -15,7 +15,7 @@ public class ExportKeysUseCase(IUserRepository repository, IKeyBackupCodec codec
 
         var user = repository.Read(userId) ?? throw new IdentityAccessException(IdentityAccessError.UserNotFound, "The user is invalid or does not exist.");
 
-        var keys = user.Keys.Select(key => new BackupKey(key.ServiceName, key.SecretKey)).ToList();
+        var keys = user.Keys.Select(key => new BackupKey(key.ServiceName, key.SecretKey, TotpParametersModel.FromDomain(key.Parameters))).ToList();
         return codec.Encode(keys, backupPassword);
     }
 }
