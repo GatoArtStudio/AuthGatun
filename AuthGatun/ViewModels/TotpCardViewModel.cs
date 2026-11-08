@@ -13,6 +13,9 @@ public class TotpCardViewModel : ViewModelBase
     private string _code = "";
     private int _secondsRemaining;
     private int _periodSeconds = 30;
+    private bool _isFavorite;
+    private bool _canMoveUp;
+    private bool _canMoveDown;
 
     public Guid Id { get; }
     private string _serviceName = "";
@@ -58,11 +61,16 @@ public class TotpCardViewModel : ViewModelBase
 
     public ReactiveCommand<Unit, Unit> CopyCommand { get; }
     public ReactiveCommand<Unit, Unit> DeleteCommand { get; }
+    public ReactiveCommand<Unit, Unit> ToggleFavoriteCommand { get; }
+    public ReactiveCommand<Unit, Unit> MoveUpCommand { get; }
+    public ReactiveCommand<Unit, Unit> MoveDownCommand { get; }
 
     public TotpCardViewModel(
         TotpCodeModel model,
         Action<Guid> copy,
         Action<Guid> delete,
+        Action<Guid, bool> setFavorite,
+        Action<Guid, KeyMoveDirection> move,
         Func<Guid, string, string?, bool>? saveEdit = null)
     {
         _saveEdit = saveEdit;
@@ -85,6 +93,9 @@ public class TotpCardViewModel : ViewModelBase
             IsEditing = false;
             EditSecretKey = "";
         });
+        ToggleFavoriteCommand = ReactiveCommand.Create(() => setFavorite(Id, !IsFavorite));
+        MoveUpCommand = ReactiveCommand.Create(() => move(Id, KeyMoveDirection.Up));
+        MoveDownCommand = ReactiveCommand.Create(() => move(Id, KeyMoveDirection.Down));
         Update(model);
     }
 
@@ -118,10 +129,41 @@ public class TotpCardViewModel : ViewModelBase
 
     public bool IsCritical => _secondsRemaining <= CriticalSeconds;
 
+    public bool IsFavorite
+    {
+        get => _isFavorite;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _isFavorite, value);
+            this.RaisePropertyChanged(nameof(FavoriteGlyph));
+        }
+    }
+
+    public string FavoriteGlyph => _isFavorite ? "★" : "☆";
+
+    public bool CanMoveUp
+    {
+        get => _canMoveUp;
+        private set => this.RaiseAndSetIfChanged(ref _canMoveUp, value);
+    }
+
+    public bool CanMoveDown
+    {
+        get => _canMoveDown;
+        private set => this.RaiseAndSetIfChanged(ref _canMoveDown, value);
+    }
+
+    public void SetMovability(bool canMoveUp, bool canMoveDown)
+    {
+        CanMoveUp = canMoveUp;
+        CanMoveDown = canMoveDown;
+    }
+
     public void Update(TotpCodeModel model)
     {
         ServiceName = model.ServiceName;
         Initial = string.IsNullOrWhiteSpace(model.ServiceName) ? "?" : model.ServiceName.Trim()[..1].ToUpperInvariant();
+        IsFavorite = model.IsFavorite;
         _periodSeconds = Math.Max(1, model.PeriodSeconds);
         Code = model.Code;
         SecondsRemaining = model.SecondsRemaining;
