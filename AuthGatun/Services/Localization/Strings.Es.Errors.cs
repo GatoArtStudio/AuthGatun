@@ -22,7 +22,10 @@ public static partial class StringsSpanish
             ["Error_QrNotFound"] = "No se encontró ningún código QR en la imagen",
             ["Error_QrNotOtpAuth"] = "El código QR no es una clave de verificación en dos pasos",
             ["Error_QrInvalidSecret"] = "El código QR no contiene una clave secreta válida",
-            ["Error_QrUnsupportedParameters"] = "Esta clave usa ajustes que aún no se admiten (solo 6 dígitos, 30 segundos y SHA1)",
+            ["Error_QrUnsupportedParameters"] = "Esta clave usa ajustes que no se admiten (algoritmo, dígitos o periodo fuera de rango, o no es una clave por tiempo)",
             ["Error_ImageUnreadable"] = "No se pudo leer la imagen",
+            ["Error_MigrationInvalidData"] = "El código QR de migración no es válido o está dañado",
+            ["Error_MigrationNoSupportedKeys"] = "El código QR de migración no tiene claves compatibles (solo claves por tiempo con SHA1, SHA256 o SHA512)",
+            ["Error_DuplicateKey"] = "Esa clave ya está guardada",
     };
 }

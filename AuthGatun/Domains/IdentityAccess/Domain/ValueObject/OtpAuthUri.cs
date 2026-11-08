@@ -10,13 +10,10 @@ public enum OtpAuthUriProblem
     UnsupportedParameters
 }
 
-public sealed record OtpAuthUri(string ServiceName, string SecretKey)
+public sealed record OtpAuthUri(string ServiceName, string SecretKey, TotpParameters Parameters)
 {
     private const string Scheme = "otpauth://";
     private const string DefaultServiceName = "TOTP";
-    private const string SupportedAlgorithm = "SHA1";
-    private const string SupportedDigits = "6";
-    private const string SupportedPeriod = "30";
 
     public static OtpAuthUriProblem TryParse(string? text, out OtpAuthUri? uri)
     {
@@ -63,17 +60,45 @@ public sealed record OtpAuthUri(string ServiceName, string SecretKey)
         if (normalizedSecret is null)
             return OtpAuthUriProblem.InvalidSecret;
 
-        if (!IsDefault(algorithm, SupportedAlgorithm) || !IsDefault(digits, SupportedDigits) || !IsDefault(period, SupportedPeriod))
+        if (!TryParseParameters(algorithm, digits, period, out var parameters))
             return OtpAuthUriProblem.UnsupportedParameters;
 
-        uri = new OtpAuthUri(ResolveServiceName(issuer, label), normalizedSecret);
+        uri = new OtpAuthUri(ResolveServiceName(issuer, label), normalizedSecret, parameters);
         return OtpAuthUriProblem.None;
     }
 
-    private static bool IsDefault(string? value, string expected) =>
-        string.IsNullOrWhiteSpace(value) || value.Trim().Equals(expected, StringComparison.OrdinalIgnoreCase);
+    private static bool TryParseParameters(string? algorithm, string? digits, string? period, out TotpParameters parameters)
+    {
+        parameters = TotpParameters.Default;
+        var parsedAlgorithm = TotpAlgorithm.Sha1;
+        var parsedDigits = parameters.Digits;
+        var parsedPeriod = parameters.PeriodSeconds;
 
-    private static string ResolveServiceName(string? issuer, string label)
+        if (!string.IsNullOrWhiteSpace(algorithm))
+        {
+            switch (algorithm.Trim().ToUpperInvariant())
+            {
+                case "SHA1": parsedAlgorithm = TotpAlgorithm.Sha1; break;
+                case "SHA256": parsedAlgorithm = TotpAlgorithm.Sha256; break;
+                case "SHA512": parsedAlgorithm = TotpAlgorithm.Sha512; break;
+                default: return false;
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(digits)
+            && (!int.TryParse(digits.Trim(), out parsedDigits) || parsedDigits is < TotpParameters.MinDigits or > TotpParameters.MaxDigits))
+            return false;
+
+        if (!string.IsNullOrWhiteSpace(period)
+            && (!int.TryParse(period.Trim(), out parsedPeriod)
+                || parsedPeriod is < TotpParameters.MinPeriodSeconds or > TotpParameters.MaxPeriodSeconds))
+            return false;
+
+        parameters = new TotpParameters(parsedAlgorithm, parsedDigits, parsedPeriod);
+        return true;
+    }
+
+    internal static string ResolveServiceName(string? issuer, string label)
     {
         if (!string.IsNullOrWhiteSpace(issuer))
             return issuer.Trim();

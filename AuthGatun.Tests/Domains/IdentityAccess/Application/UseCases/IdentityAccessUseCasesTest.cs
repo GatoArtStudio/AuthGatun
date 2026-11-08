@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using AuthGatun.Domains.IdentityAccess.Adapters.Outbound.Persistence;
 using AuthGatun.Domains.IdentityAccess.Adapters.Outbound.Security;
@@ -7,6 +8,7 @@ using AuthGatun.Domains.IdentityAccess.Application.Models;
 using AuthGatun.Domains.IdentityAccess.Application.Ports.Outbound;
 using AuthGatun.Domains.IdentityAccess.Application.UseCases;
 using AuthGatun.Domains.IdentityAccess.Domain.Event;
+using AuthGatun.Domains.IdentityAccess.Domain.ValueObject;
 using Xunit;
 
 namespace AuthGatun.Tests.Domains.IdentityAccess.Application.UseCases;
@@ -63,9 +65,9 @@ public class IdentityAccessUseCasesTest
 
     private sealed class FakeTotpCodeGenerator : ITotpCodeGenerator
     {
-        public int PeriodSeconds => 30;
-        public string Generate(string secretKey) => "code-" + secretKey;
-        public int RemainingSeconds() => 12;
+        public string Generate(string secretKey, TotpParameters parameters) =>
+            "code-" + secretKey + "-" + parameters.Digits;
+        public int RemainingSeconds(TotpParameters parameters) => parameters.PeriodSeconds / 2;
     }
 
     private readonly InMemoryRepository _repository = new();
@@ -126,7 +128,7 @@ public class IdentityAccessUseCasesTest
 
         var key = Assert.Single(keys);
         Assert.Equal("github", key.ServiceName);
-        Assert.Equal("code-SECRET", new GenerateTotpCodeUseCase(_repository, new FakeTotpCodeGenerator()).Execute(key.Id));
+        Assert.Equal("code-SECRET-6", new GenerateTotpCodeUseCase(_repository, new FakeTotpCodeGenerator()).Execute(key.Id));
     }
 
     [Fact]
@@ -139,8 +141,8 @@ public class IdentityAccessUseCasesTest
 
         var code = Assert.Single(codes);
         Assert.Equal("github", code.ServiceName);
-        Assert.Equal("code-SECRET", code.Code);
-        Assert.Equal(12, code.SecondsRemaining);
+        Assert.Equal("code-SECRET-6", code.Code);
+        Assert.Equal(15, code.SecondsRemaining);
         Assert.Equal(30, code.PeriodSeconds);
     }
 
@@ -191,6 +193,53 @@ public class IdentityAccessUseCasesTest
         Assert.Throws<ArgumentException>(() =>
             new UpdateKeyUseCase(_publisher, _repository).Execute(new UpdateKeyRequest(user.Id, keyId, "  ", null)));
         Assert.Equal("github", Assert.Single(new ReadKeysUseCase(_repository).Execute(user.Id)).ServiceName);
+    }
+
+    [Fact]
+    public void ReadTotpCodesUsesTheParametersOfEachKey()
+    {
+        var user = RegisterUser();
+        var newKey = new NewKeyUseCase(_publisher, _repository);
+        newKey.Execute(new NewKeyRequest(user.Id, "slow", "SECRET", new TotpParametersModel("SHA256", 8, 60)));
+        newKey.Execute(new NewKeyRequest(user.Id, "fast", "OTHER"));
+
+        var codes = new ReadTotpCodesUseCase(_repository, new FakeTotpCodeGenerator()).Execute(user.Id);
+
+        var slow = codes.Single(c => c.ServiceName == "slow");
+        Assert.Equal("code-SECRET-8", slow.Code);
+        Assert.Equal(60, slow.PeriodSeconds);
+        Assert.Equal(30, slow.SecondsRemaining);
+        Assert.Equal(30, codes.Single(c => c.ServiceName == "fast").PeriodSeconds);
+    }
+
+    [Fact]
+    public void NewKeyCanRejectDuplicates()
+    {
+        var user = RegisterUser();
+        var newKey = new NewKeyUseCase(_publisher, _repository);
+        newKey.Execute(new NewKeyRequest(user.Id, "github", "SECRET"));
+
+        var error = Assert.Throws<IdentityAccessException>(() =>
+            newKey.Execute(new NewKeyRequest(user.Id, "github", "SECRET", RejectDuplicate: true)));
+
+        Assert.Equal(IdentityAccessError.DuplicateKey, error.Error);
+        newKey.Execute(new NewKeyRequest(user.Id, "github", "SECRET"));
+        Assert.Equal(2, new ReadKeysUseCase(_repository).Execute(user.Id).Count);
+    }
+
+    [Fact]
+    public void ExportAndImportCarryTheParameters()
+    {
+        var source = RegisterUser("source");
+        var target = RegisterUser("target");
+        var expected = new TotpParametersModel("SHA512", 8, 45);
+        new NewKeyUseCase(_publisher, _repository).Execute(new NewKeyRequest(source.Id, "github", "SECRET", expected));
+        var codec = new AesGcmKeyBackupCodec();
+        var backup = new ExportKeysUseCase(_repository, codec).Execute(source.Id, "Backup-password");
+
+        new ImportKeysUseCase(_repository, codec).Execute(target.Id, backup, "Backup-password");
+
+        Assert.Equal(expected, Assert.Single(new ReadKeysUseCase(_repository).Execute(target.Id)).Parameters);
     }
 
     [Fact]

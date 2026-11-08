@@ -19,7 +19,7 @@ public class ReadKeysUseCase(IUserRepository repository) : IReadKeysUseCase
             .Select(key => new KeySummary(
                 key.Id,
                 key.ServiceName,
-                new TotpParametersModel(key.Parameters.Algorithm.ToString().ToUpperInvariant(), key.Parameters.Digits, key.Parameters.PeriodSeconds),
+                TotpParametersModel.FromDomain(key.Parameters),
                 key.IsFavorite,
                 key.SortOrder))
             .ToList();
