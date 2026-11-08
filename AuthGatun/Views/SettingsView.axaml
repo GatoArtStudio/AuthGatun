@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:AuthGatun.Controls"
              xmlns:vm="clr-namespace:AuthGatun.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="AuthGatun.Views.SettingsView"
@@ -68,20 +69,17 @@
             </ComboBox>
 
             <TextBlock Classes="section" Text="{DynamicResource Settings_ChangePassword}" />
-            <TextBox
+            <controls:PasswordTextBox
                 Text="{Binding CurrentPassword, Mode=TwoWay}"
                 Watermark="{DynamicResource Settings_CurrentPassword}"
-                PasswordChar="*"
                 Classes="default" />
-            <TextBox
+            <controls:PasswordTextBox
                 Text="{Binding NewPassword, Mode=TwoWay}"
                 Watermark="{DynamicResource Settings_NewPassword}"
-                PasswordChar="*"
                 Classes="default" />
-            <TextBox
+            <controls:PasswordTextBox
                 Text="{Binding RepeatPassword, Mode=TwoWay}"
                 Watermark="{DynamicResource Settings_RepeatPassword}"
-                PasswordChar="*"
                 Classes="default" />
             <Button
                 Content="{DynamicResource Settings_ChangePasswordButton}"
@@ -94,10 +92,9 @@
             <TextBlock
                 TextWrapping="Wrap"
                 Text="{DynamicResource Settings_BackupHint}" />
-            <TextBox
+            <controls:PasswordTextBox
                 Text="{Binding ExportPassword, Mode=TwoWay}"
                 Watermark="{DynamicResource Settings_ExportPasswordPlaceholder}"
-                PasswordChar="*"
                 Classes="default" />
             <Button
                 Content="{DynamicResource Settings_Export}"
@@ -105,10 +102,9 @@
                 HorizontalAlignment="Stretch"
                 Classes="default"
                 Command="{Binding ExportKeysCommand}" />
-            <TextBox
+            <controls:PasswordTextBox
                 Text="{Binding ImportPassword, Mode=TwoWay}"
                 Watermark="{DynamicResource Settings_ImportPasswordPlaceholder}"
-                PasswordChar="*"
                 Classes="default" />
             <Button
                 Content="{DynamicResource Settings_Import}"
