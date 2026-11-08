@@ -62,7 +62,9 @@ public class IdentityAccessUseCasesTest
 
     private sealed class FakeTotpCodeGenerator : ITotpCodeGenerator
     {
+        public int PeriodSeconds => 30;
         public string Generate(string secretKey) => "code-" + secretKey;
+        public int RemainingSeconds() => 12;
     }
 
     private readonly InMemoryRepository _repository = new();
@@ -124,6 +126,21 @@ public class IdentityAccessUseCasesTest
         var key = Assert.Single(keys);
         Assert.Equal("github", key.ServiceName);
         Assert.Equal("code-SECRET", new GenerateTotpCodeUseCase(_repository, new FakeTotpCodeGenerator()).Execute(key.Id));
+    }
+
+    [Fact]
+    public void ReadTotpCodesReturnsCodeAndRemainingTimeForEachKey()
+    {
+        var user = RegisterUser();
+        new NewKeyUseCase(_publisher, _repository).Execute(new NewKeyRequest(user.Id, "github", "SECRET"));
+
+        var codes = new ReadTotpCodesUseCase(_repository, new FakeTotpCodeGenerator()).Execute(user.Id);
+
+        var code = Assert.Single(codes);
+        Assert.Equal("github", code.ServiceName);
+        Assert.Equal("code-SECRET", code.Code);
+        Assert.Equal(12, code.SecondsRemaining);
+        Assert.Equal(30, code.PeriodSeconds);
     }
 
     [Fact]

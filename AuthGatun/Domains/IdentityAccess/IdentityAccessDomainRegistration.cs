@@ -45,6 +45,7 @@ public static class IdentityAccessDomainRegistration
         services.AddTransient<IDeleteKeyUseCase, DeleteKeyUseCase>();
         services.AddTransient<IReadKeysUseCase, ReadKeysUseCase>();
         services.AddTransient<IGenerateTotpCodeUseCase, GenerateTotpCodeUseCase>();
+        services.AddTransient<IReadTotpCodesUseCase, ReadTotpCodesUseCase>();
 
         return services;
     }
