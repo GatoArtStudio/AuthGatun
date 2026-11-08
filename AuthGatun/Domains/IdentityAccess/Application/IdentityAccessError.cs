@@ -7,6 +7,7 @@ public enum IdentityAccessError
     PasswordTooShort,
     UserAlreadyExists,
     UserNotFound,
+    KeyNotFound,
     WrongCurrentPassword,
     BackupPasswordTooShort,
     InvalidBackupPassword,

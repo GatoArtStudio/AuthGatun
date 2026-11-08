@@ -144,6 +144,55 @@ public class IdentityAccessUseCasesTest
         Assert.Equal(30, code.PeriodSeconds);
     }
 
+    private (AuthenticatedUser User, Guid KeyId) UserWithKey()
+    {
+        var user = RegisterUser();
+        new NewKeyUseCase(_publisher, _repository).Execute(new NewKeyRequest(user.Id, "github", "SECRET"));
+        return (user, new ReadKeysUseCase(_repository).Execute(user.Id)[0].Id);
+    }
+
+    [Fact]
+    public void UpdateKeyRenamesServiceAndKeepsSecretWhenNull()
+    {
+        var (user, keyId) = UserWithKey();
+
+        new UpdateKeyUseCase(_publisher, _repository).Execute(new UpdateKeyRequest(user.Id, keyId, "gitlab", null));
+
+        Assert.Equal("gitlab", Assert.Single(new ReadKeysUseCase(_repository).Execute(user.Id)).ServiceName);
+        Assert.Equal("code-SECRET", new GenerateTotpCodeUseCase(_repository, new FakeTotpCodeGenerator()).Execute(keyId));
+    }
+
+    [Fact]
+    public void UpdateKeyReplacesSecretWhenProvided()
+    {
+        var (user, keyId) = UserWithKey();
+
+        new UpdateKeyUseCase(_publisher, _repository).Execute(new UpdateKeyRequest(user.Id, keyId, "github", "NEWSECRET"));
+
+        Assert.Equal("code-NEWSECRET", new GenerateTotpCodeUseCase(_repository, new FakeTotpCodeGenerator()).Execute(keyId));
+    }
+
+    [Fact]
+    public void UpdateKeyReportsMissingKey()
+    {
+        var (user, _) = UserWithKey();
+
+        var error = Assert.Throws<IdentityAccessException>(() =>
+            new UpdateKeyUseCase(_publisher, _repository).Execute(new UpdateKeyRequest(user.Id, Guid.NewGuid(), "x", null)));
+
+        Assert.Equal(IdentityAccessError.KeyNotFound, error.Error);
+    }
+
+    [Fact]
+    public void UpdateKeyRejectsBlankName()
+    {
+        var (user, keyId) = UserWithKey();
+
+        Assert.Throws<ArgumentException>(() =>
+            new UpdateKeyUseCase(_publisher, _repository).Execute(new UpdateKeyRequest(user.Id, keyId, "  ", null)));
+        Assert.Equal("github", Assert.Single(new ReadKeysUseCase(_repository).Execute(user.Id)).ServiceName);
+    }
+
     [Fact]
     public void DeleteKeyRemovesItAndReportsMissingKeys()
     {
