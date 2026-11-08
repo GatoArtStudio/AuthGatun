@@ -12,6 +12,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <RdXmlFile Include="rd.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
     <InternalsVisibleTo Include="AuthGatun.Tests" />
   </ItemGroup>
