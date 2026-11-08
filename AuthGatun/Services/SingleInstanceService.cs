@@ -6,24 +6,36 @@ using System.Threading.Tasks;
 
 namespace AuthGatun.Services;
 
-public sealed class SingleInstanceService(string name) : IDisposable
+public sealed class SingleInstanceService(string name, string? lockDirectory = null) : IDisposable
 {
     private const string ShowMessage = "show";
     private const int ConnectTimeoutMilliseconds = 2000;
+    private const int RetryDelayMilliseconds = 200;
 
     private readonly CancellationTokenSource _cancellation = new();
-    private Mutex? _mutex;
+    private FileStream? _lock;
 
     public bool TryAcquire()
     {
-        // The Global prefix makes the mutex visible across login sessions; on Linux it is otherwise scoped to the terminal session.
-        _mutex = new Mutex(true, $"Global\\{name}", out var createdNew);
-        if (createdNew)
-            return true;
+        // A lock on a file is released by the operating system when the process ends, even if it crashes, and it works
+        // across login sessions. Named mutexes are not shared between processes in Native AOT builds on Linux.
+        try
+        {
+            var directory = lockDirectory ?? LockDirectory();
+            Directory.CreateDirectory(directory);
 
-        _mutex.Dispose();
-        _mutex = null;
-        return false;
+            _lock = new FileStream(
+                Path.Combine(directory, name + ".lock"),
+                FileMode.OpenOrCreate,
+                FileAccess.ReadWrite,
+                FileShare.None);
+            return true;
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            _lock = null;
+            return false;
+        }
     }
 
     public void NotifyRunningInstance()
@@ -51,7 +63,7 @@ public sealed class SingleInstanceService(string name) : IDisposable
     {
         _cancellation.Cancel();
         _cancellation.Dispose();
-        _mutex?.Dispose();
+        _lock?.Dispose();
     }
 
     private async Task ListenAsync(Action onShowRequested, CancellationToken cancellationToken)
@@ -75,7 +87,16 @@ public sealed class SingleInstanceService(string name) : IDisposable
             catch (IOException)
             {
                 // A client disconnected too early, wait for the next one.
+                await Task.Delay(RetryDelayMilliseconds, CancellationToken.None);
             }
         }
+    }
+
+    private static string LockDirectory()
+    {
+        var runtimeDirectory = Environment.GetEnvironmentVariable("XDG_RUNTIME_DIR");
+        return !string.IsNullOrEmpty(runtimeDirectory) && Directory.Exists(runtimeDirectory)
+            ? runtimeDirectory
+            : Path.GetTempPath();
     }
 }
