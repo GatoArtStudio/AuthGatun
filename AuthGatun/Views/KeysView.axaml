@@ -12,22 +12,22 @@
         Margin="20,36,20,20"
         Spacing="10">
 
-        <TextBlock Text="Nueva clave" FontSize="24" FontWeight="Bold" Margin="0,0,0,8" />
-        <TextBlock Classes="muted" Text="Pega la clave secreta que te da el servicio al activar la verificación en dos pasos." />
+        <TextBlock Text="{DynamicResource Keys_Title}" FontSize="24" FontWeight="Bold" Margin="0,0,0,8" />
+        <TextBlock Classes="muted" Text="{DynamicResource Keys_Hint}" />
         <TextBlock 
-            Text="Nombre del Servicio" Margin="0,10,0,0" />
+            Text="{DynamicResource Keys_ServiceName}" Margin="0,10,0,0" />
         <TextBox
-            Watermark="Ingresa el nombre del servicio"
+            Watermark="{DynamicResource Keys_ServiceNamePlaceholder}"
             Classes="default"
             Text="{Binding ServiceName, Mode=TwoWay}"/>
         <TextBlock 
-            Text="Ingresa la clave"/>
+            Text="{DynamicResource Keys_Secret}"/>
         <TextBox 
-            Watermark="Ingresa la clave totp"
+            Watermark="{DynamicResource Keys_SecretPlaceholder}"
             Classes="default"
             Text="{Binding TotpKey, Mode=TwoWay}"/>
         <Button 
-            Content="Guardar"
+            Content="{DynamicResource Keys_Save}"
             HorizontalContentAlignment="Center"
             HorizontalAlignment="Stretch"
             Classes="default primary"

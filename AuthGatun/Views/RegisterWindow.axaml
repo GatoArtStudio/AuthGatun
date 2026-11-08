@@ -11,7 +11,7 @@
         x:Class="AuthGatun.Views.RegisterWindow"
         x:DataType="vm:RegisterWindowViewModel"
         Icon="/Assets/logo.ico"
-        Title="RegisterWindow"
+        Title="{DynamicResource Register_WindowTitle}"
         TransparencyLevelHint="AcrylicBlur, Blur"
         ExtendClientAreaToDecorationsHint="True"
         Background="#7F000000"
@@ -42,25 +42,24 @@
                                 HorizontalAlignment="Center"
                                 FontSize="40"
                                 FontWeight="Bold"
-                                Margin="0,10,0,20">
-                                Registrarse
-                        </TextBlock>
+                                Margin="0,10,0,20"
+                                Text="{DynamicResource Register_Heading}" />
                         <TextBox
                                 Text="{Binding Username, Mode=TwoWay}"
                                 Classes="default"
-                                Watermark="Usuario"/>
+                                Watermark="{DynamicResource Register_Username}"/>
                         <TextBox
                                 Text="{Binding Newpassword, Mode=TwoWay}"
-                                Watermark="Contraseña"
+                                Watermark="{DynamicResource Register_Password}"
                                 Classes="default"
                                 PasswordChar="*"/>
                         <TextBox
                                 Text="{Binding Repeatpassword, Mode=TwoWay}"
-                                Watermark="Repetir la contraseña"
+                                Watermark="{DynamicResource Register_RepeatPassword}"
                                 Classes="default"
                                 PasswordChar="*"/>
                         <Button
-                                Content="Registrar"
+                                Content="{DynamicResource Register_Submit}"
                                 HorizontalContentAlignment="Center"
                                 HorizontalAlignment="Stretch"
                                 IsDefault="True"
@@ -68,7 +67,7 @@
                                 Classes="default primary"
                                 Command="{Binding RegisterCommand}"/>
                         <Button
-                                Content="Ir a iniciar sesión"
+                                Content="{DynamicResource Register_GoToLogin}"
                                 HorizontalContentAlignment="Center"
                                 HorizontalAlignment="Stretch"
                                 Classes="default"
@@ -84,10 +83,10 @@
                                 HorizontalAlignment="Center"
                                 FontSize="28"
                                 FontWeight="Bold"
-                                Text="Código de recuperación" />
+                                Text="{DynamicResource Register_RecoveryHeading}" />
                         <TextBlock
                                 TextWrapping="Wrap"
-                                Text="Guárdalo en un lugar seguro. Es la única forma de recuperar tus claves si olvidas la contraseña y no se volverá a mostrar." />
+                                Text="{DynamicResource Register_RecoveryHint}" />
                         <TextBox
                                 Text="{Binding RecoveryCode, Mode=OneWay}"
                                 IsReadOnly="True"
@@ -95,7 +94,7 @@
                                 FontFamily="monospace"
                                 Classes="default" />
                         <Button
-                                Content="He guardado el código, continuar"
+                                Content="{DynamicResource Register_Continue}"
                                 HorizontalContentAlignment="Center"
                                 HorizontalAlignment="Stretch"
                                 Margin="0,20,0,0"

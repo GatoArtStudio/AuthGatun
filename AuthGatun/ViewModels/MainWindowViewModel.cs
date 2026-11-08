@@ -1,5 +1,6 @@
 using System.Reactive;
 using AuthGatun.Core.AvaloniaUI;
+using AuthGatun.Core.Localization;
 using AuthGatun.Domains.IdentityAccess.Application.Ports.Inbound;
 using AuthGatun.Services;
 using AuthGatun.Views;
@@ -18,6 +19,7 @@ public class MainWindowViewModel : ViewModelBase
     private readonly UserStatusService _userStatusService;
     private readonly IWindowService _windowService;
     private readonly IBackgroundModeService _backgroundMode;
+    private readonly ILocalizer _localizer;
     
     public ReactiveCommand<Unit, Unit> ShowHomeViewCommand { get; }
     public ReactiveCommand<Unit, Unit> ShowKeysViewCommand { get; }
@@ -32,7 +34,8 @@ public class MainWindowViewModel : ViewModelBase
         ILogoutUseCase logout,
         UserStatusService userStatusService,
         IWindowService windowService,
-        IBackgroundModeService backgroundMode
+        IBackgroundModeService backgroundMode,
+        ILocalizer localizer
     )
     {
         _discordService = discordService;
@@ -43,6 +46,7 @@ public class MainWindowViewModel : ViewModelBase
         _userStatusService = userStatusService;
         _windowService = windowService;
         _backgroundMode = backgroundMode;
+        _localizer = localizer;
         
         ShowHomeViewCommand = ReactiveCommand.Create(ShowHomeView);
         ShowKeysViewCommand = ReactiveCommand.Create(ShowKeysView);
@@ -72,7 +76,7 @@ public class MainWindowViewModel : ViewModelBase
             loginWindow.Show();
 
         _windowService.Close(this);
-        _discordService.UpdatePresence("AuthGatun", "Iniciemos sesión!.");
+        _discordService.UpdatePresence("AuthGatun", _localizer.Get("Presence_Login"));
     }
 
     private void ShowHomeView()

@@ -1,5 +1,6 @@
 using System;
 using AuthGatun.Core.AvaloniaUI;
+using AuthGatun.Core.Localization;
 using AuthGatun.Domains.IdentityAccess.Application.Ports.Inbound;
 using AuthGatun.ViewModels;
 using Avalonia;
@@ -14,15 +15,21 @@ public class BackgroundModeService : IBackgroundModeService
     private readonly AppSettingsState _settings;
     private readonly IWindowService _windowService;
     private readonly ILogoutUseCase _logout;
+    private readonly ILocalizer _localizer;
     private TrayIcon? _trayIcon;
+    private NativeMenuItem? _openItem;
+    private NativeMenuItem? _lockItem;
+    private NativeMenuItem? _exitItem;
     private bool _exiting;
 
-    public BackgroundModeService(AppSettingsState settings, IWindowService windowService, ILogoutUseCase logout)
+    public BackgroundModeService(AppSettingsState settings, IWindowService windowService, ILogoutUseCase logout, ILocalizer localizer)
     {
+        _localizer = localizer;
         _settings = settings;
         _windowService = windowService;
         _logout = logout;
         _settings.Changed += Apply;
+        _localizer.LanguageChanged += UpdateTrayLabels;
     }
 
     public bool IsEnabled => _settings.Current.RunInBackground;
@@ -81,18 +88,25 @@ public class BackgroundModeService : IBackgroundModeService
             desktop.Shutdown();
     }
 
+    private void UpdateTrayLabels()
+    {
+        if (_openItem is not null) _openItem.Header = _localizer.Get("Tray_Open");
+        if (_lockItem is not null) _lockItem.Header = _localizer.Get("Tray_Lock");
+        if (_exitItem is not null) _exitItem.Header = _localizer.Get("Tray_Quit");
+    }
+
     private TrayIcon EnsureTrayIcon()
     {
         if (_trayIcon is not null)
             return _trayIcon;
 
-        var openItem = new NativeMenuItem("Abrir");
+        var openItem = _openItem = new NativeMenuItem(_localizer.Get("Tray_Open"));
         openItem.Click += (_, _) => ShowCurrent();
 
-        var lockItem = new NativeMenuItem("Cerrar sesión");
+        var lockItem = _lockItem = new NativeMenuItem(_localizer.Get("Tray_Lock"));
         lockItem.Click += (_, _) => (_windowService.CurrentWindow()?.DataContext as MainWindowViewModel)?.Lock();
 
-        var exitItem = new NativeMenuItem("Salir");
+        var exitItem = _exitItem = new NativeMenuItem(_localizer.Get("Tray_Quit"));
         exitItem.Click += (_, _) => Exit();
 
         _trayIcon = new TrayIcon

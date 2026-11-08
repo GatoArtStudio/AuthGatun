@@ -6,7 +6,9 @@ using AuthGatun.Domains.Settings;
 using AuthGatun.Domains.IdentityAccess.Adapters.Outbound.EventBus;
 using AuthGatun.Domains.IdentityAccess.Adapters.Outbound.Persistence;
 using AuthGatun.Factories;
+using AuthGatun.Core.Localization;
 using AuthGatun.Services;
+using AuthGatun.Services.Localization;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
@@ -57,6 +59,7 @@ public partial class App : Application
         }
         
         services.AddSingleton<ScreenCaptureService>();
+        services.AddSingleton<ILocalizer, Localizer>();
 
         // View models, They implement ViewModelBase
         services.AddTransient<LoginWindowViewModel>();
@@ -90,6 +93,7 @@ public partial class App : Application
         {
             // Line below is needed to remove Avalonia data validation.
             // Without this line you will get duplicate validations from both Avalonia and CT
+            ServiceProvider.GetRequiredService<ILocalizer>();
             var viewModelFactory = ServiceProvider.GetRequiredService<IViewModelFactory>();
             var windowFactory = ServiceProvider.GetRequiredService<IWindowFactory>();
             var loginViewModel = viewModelFactory.Create<LoginWindowViewModel>();

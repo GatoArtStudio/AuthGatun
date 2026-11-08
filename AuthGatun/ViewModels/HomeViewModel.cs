@@ -5,6 +5,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using AuthGatun.Core.AvaloniaUI;
+using AuthGatun.Core.Localization;
 using AuthGatun.Domains.IdentityAccess.Application.Ports.Inbound;
 using AuthGatun.Domains.IdentityAccess.Application.Models;
 using AuthGatun.Helpers;
@@ -28,6 +29,7 @@ public class HomeViewModel : ViewModelBase
     private readonly UserStatusService _userStatusService;
     private readonly NotifyManagerService _notifyManagerService;
     private readonly IWindowService _windowService;
+    private readonly ILocalizer _localizer;
 
     private static readonly TimeSpan ClipboardClearDelay = TimeSpan.FromSeconds(30);
 
@@ -40,12 +42,14 @@ public class HomeViewModel : ViewModelBase
         IGenerateTotpCodeUseCase generateTotpCode,
         NotifyManagerService notifyManagerService,
         UserStatusService userStatusService,
-        IWindowService windowService
+        IWindowService windowService,
+        ILocalizer localizer
     )
     {
         _notifyManagerService = notifyManagerService;
         _userStatusService = userStatusService;
         _windowService = windowService;
+        _localizer = localizer;
         _readTotpCodes = readTotpCodes;
         _deleteKey = deleteKey;
         _generateTotpCode = generateTotpCode;
@@ -55,7 +59,7 @@ public class HomeViewModel : ViewModelBase
         Refresh();
 
         var user = _userStatusService.User;
-        discordService.UpdatePresence(user?.UserName ?? "AuthGatun", "Observando las claves TOTP.");
+        discordService.UpdatePresence(user?.UserName ?? "AuthGatun", _localizer.Get("Presence_Home"));
     }
 
     public void StartRefreshing()
@@ -96,11 +100,11 @@ public class HomeViewModel : ViewModelBase
             string? code = _generateTotpCode.Execute(id);
             if (code == null)
             {
-                _notifyManagerService.SendNotifyInWindow("Clave no encontrada", title: "Gestor de claves TOTP", NotificationType.Error);
+                _notifyManagerService.SendNotifyInWindow(_localizer.Get("Home_KeyNotFound"), title: _localizer.Get("Home_NotifyTitle"), NotificationType.Error);
                 return;
             }
         
-            _notifyManagerService.SendNotifyInWindow("Código copiado. Se borrará del portapapeles en 30 segundos.", title: "Gestor de claves TOTP", NotificationType.Success);
+            _notifyManagerService.SendNotifyInWindow(_localizer.Get("Home_Copied"), title: _localizer.Get("Home_NotifyTitle"), NotificationType.Success);
             _ = Task.Run(() => clipboard.SetTextAsync(code));
             _ = ClearClipboardLaterAsync(clipboard, code);
         }
@@ -121,11 +125,11 @@ public class HomeViewModel : ViewModelBase
     {
         if (!_deleteKey.Execute(id))
         {
-            _notifyManagerService.SendNotifyInWindow("Clave no encontrada", title: "Gestor de claves TOTP", NotificationType.Error);
+            _notifyManagerService.SendNotifyInWindow(_localizer.Get("Home_KeyNotFound"), title: _localizer.Get("Home_NotifyTitle"), NotificationType.Error);
             return;
         }
         
-        _notifyManagerService.SendNotifyInWindow("Clave eliminada con éxito", title: "Gestor de claves TOTP");
+        _notifyManagerService.SendNotifyInWindow(_localizer.Get("Home_Deleted"), title: _localizer.Get("Home_NotifyTitle"));
 
         Refresh();
     }

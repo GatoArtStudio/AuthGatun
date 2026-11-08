@@ -4,6 +4,9 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using AuthGatun.Core.AvaloniaUI;
+using AuthGatun.Core.Localization;
+using AuthGatun.Domains.IdentityAccess.Application;
+using AuthGatun.Domains.IdentityAccess.Application.Models;
 using AuthGatun.Domains.IdentityAccess.Application.Ports.Inbound;
 using AuthGatun.Services;
 using AuthGatun.Views;
@@ -18,7 +21,8 @@ public class LoginWindowViewModel(
     ILoginUseCase login,
     IRecoverAccessUseCase recoverAccess,
     IWindowService windowService,
-    UserStatusService userStatusService
+    UserStatusService userStatusService,
+    ILocalizer localizer
 ) : ViewModelBase
 {
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -90,24 +94,34 @@ public class LoginWindowViewModel(
     {
         if (string.IsNullOrWhiteSpace(Username) || Username.Contains(' '))
         {
-            Messagestatus = "El usuario no puede ser nulo o contener espacios";
+            Messagestatus = localizer.Get("Login_UserInvalid");
             return;
         }
 
         if (string.IsNullOrWhiteSpace(Password) || Password.Contains(' '))
         {
-            Messagestatus = "La contraseña no puede ser nula o contener espacios";
+            Messagestatus = localizer.Get("Login_PasswordInvalid");
             return;
         }
         
         if (IsThrottled())
             return;
 
-        var userLogin = login.Execute(Username, Password);
+        AuthenticatedUser? userLogin;
+        try
+        {
+            userLogin = login.Execute(Username, Password);
+        }
+        catch (IdentityAccessException e)
+        {
+            Messagestatus = localizer.Get("Error_" + e.Error);
+            return;
+        }
+
         if (userLogin is null)
         {
             RegisterFailedAttempt();
-            Messagestatus = "Usuario incorrecto o contraseña invalidad";
+            Messagestatus = localizer.Get("Login_WrongCredentials");
             return;
         }
 
@@ -125,24 +139,34 @@ public class LoginWindowViewModel(
     {
         if (string.IsNullOrWhiteSpace(Username) || string.IsNullOrWhiteSpace(RecoveryCode))
         {
-            Messagestatus = "Ingresa el usuario y el código de recuperación";
+            Messagestatus = localizer.Get("Login_RecoveryMissing");
             return;
         }
 
         if (string.IsNullOrWhiteSpace(NewPassword) || NewPassword.Length < 8 || NewPassword.Contains(' '))
         {
-            Messagestatus = "La nueva contraseña debe tener al menos 8 caracteres y no contener espacios";
+            Messagestatus = localizer.Get("Login_NewPasswordInvalid");
             return;
         }
 
         if (IsThrottled())
             return;
 
-        var user = recoverAccess.Execute(Username, RecoveryCode, NewPassword);
+        AuthenticatedUser? user;
+        try
+        {
+            user = recoverAccess.Execute(Username, RecoveryCode, NewPassword);
+        }
+        catch (IdentityAccessException e)
+        {
+            Messagestatus = localizer.Get("Error_" + e.Error);
+            return;
+        }
+
         if (user is null)
         {
             RegisterFailedAttempt();
-            Messagestatus = "Usuario o código de recuperación incorrecto";
+            Messagestatus = localizer.Get("Login_RecoveryWrong");
             return;
         }
 
@@ -162,7 +186,7 @@ public class LoginWindowViewModel(
         if (remaining <= TimeSpan.Zero)
             return false;
 
-        Messagestatus = $"Demasiados intentos, espera {Math.Ceiling(remaining.TotalSeconds)} segundos";
+        Messagestatus = localizer.Get("Login_Throttled", Math.Ceiling(remaining.TotalSeconds));
         return true;
     }
 
@@ -185,7 +209,7 @@ public class LoginWindowViewModel(
         
         windowService.Close(this);
         
-        discordService.UpdatePresence("AuthGatun", "Registrando un nuevo usuario.");
+        discordService.UpdatePresence("AuthGatun", localizer.Get("Presence_Register"));
     }
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = "")
