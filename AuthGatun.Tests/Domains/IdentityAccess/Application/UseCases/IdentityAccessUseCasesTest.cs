@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using AuthGatun.Domains.IdentityAccess.Adapters.Outbound.Persistence;
 using AuthGatun.Domains.IdentityAccess.Adapters.Outbound.Security;
 using AuthGatun.Domains.IdentityAccess.Application;
@@ -253,6 +254,78 @@ public class IdentityAccessUseCasesTest
         Assert.True(delete.Execute(keyId));
         Assert.False(delete.Execute(keyId));
         Assert.Empty(new ReadKeysUseCase(_repository).Execute(user.Id));
+    }
+
+    private Guid[] AddKeys(AuthenticatedUser user, params string[] services)
+    {
+        var newKey = new NewKeyUseCase(_publisher, _repository);
+        foreach (var service in services)
+            newKey.Execute(new NewKeyRequest(user.Id, service, "SECRET-" + service));
+        return new ReadKeysUseCase(_repository).Execute(user.Id).Select(key => key.Id).ToArray();
+    }
+
+    private string[] ReadOrder(AuthenticatedUser user) =>
+        new ReadTotpCodesUseCase(_repository, new FakeTotpCodeGenerator()).Execute(user.Id).Select(code => code.ServiceName).ToArray();
+
+    [Fact]
+    public void FavoriteKeysAreReadFirst()
+    {
+        var user = RegisterUser();
+        var ids = AddKeys(user, "a", "b", "c");
+
+        new SetKeyFavoriteUseCase(_repository).Execute(ids[2], true);
+
+        Assert.Equal(["c", "a", "b"], ReadOrder(user));
+        Assert.True(new ReadTotpCodesUseCase(_repository, new FakeTotpCodeGenerator()).Execute(user.Id)[0].IsFavorite);
+
+        new SetKeyFavoriteUseCase(_repository).Execute(ids[2], false);
+
+        Assert.Equal(["a", "b", "c"], ReadOrder(user));
+    }
+
+    [Fact]
+    public void SetFavoriteOnMissingKeyThrows()
+    {
+        RegisterUser();
+
+        Assert.Equal(
+            IdentityAccessError.KeyNotFound,
+            Assert.Throws<IdentityAccessException>(() => new SetKeyFavoriteUseCase(_repository).Execute(Guid.NewGuid(), true)).Error);
+    }
+
+    [Fact]
+    public void MoveKeySwapsNeighborsAndKeepsDenseOrder()
+    {
+        var user = RegisterUser();
+        var ids = AddKeys(user, "a", "b", "c");
+        var move = new MoveKeyUseCase(_repository);
+
+        Assert.True(move.Execute(ids[2], KeyMoveDirection.Up));
+        Assert.Equal(["a", "c", "b"], ReadOrder(user));
+
+        Assert.True(move.Execute(ids[0], KeyMoveDirection.Down));
+        Assert.Equal(["c", "a", "b"], ReadOrder(user));
+        Assert.Equal(
+            [0, 1, 2],
+            new ReadTotpCodesUseCase(_repository, new FakeTotpCodeGenerator()).Execute(user.Id).Select(code => code.SortOrder));
+    }
+
+    [Fact]
+    public void MoveKeyAtTheEndsOrAcrossFavoritesDoesNothing()
+    {
+        var user = RegisterUser();
+        var ids = AddKeys(user, "a", "b", "c");
+        var move = new MoveKeyUseCase(_repository);
+
+        Assert.False(move.Execute(ids[0], KeyMoveDirection.Up));
+        Assert.False(move.Execute(ids[2], KeyMoveDirection.Down));
+
+        new SetKeyFavoriteUseCase(_repository).Execute(ids[0], true);
+
+        Assert.False(move.Execute(ids[0], KeyMoveDirection.Down));
+        Assert.False(move.Execute(ids[1], KeyMoveDirection.Up));
+        Assert.Equal(["a", "b", "c"], ReadOrder(user));
+        Assert.Throws<IdentityAccessException>(() => move.Execute(Guid.NewGuid(), KeyMoveDirection.Up));
     }
 
     [Fact]

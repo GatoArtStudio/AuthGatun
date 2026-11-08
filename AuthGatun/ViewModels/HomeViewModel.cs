@@ -6,6 +6,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using AuthGatun.Core.AvaloniaUI;
 using AuthGatun.Core.Localization;
+using System.Collections.Generic;
 using AuthGatun.Domains.IdentityAccess.Application;
 using AuthGatun.Domains.IdentityAccess.Application.Ports.Inbound;
 using AuthGatun.Domains.IdentityAccess.Application.Models;
@@ -35,7 +36,26 @@ public class HomeViewModel : ViewModelBase
 
     private static readonly TimeSpan ClipboardClearDelay = TimeSpan.FromSeconds(30);
 
+    private readonly List<TotpCardViewModel> _allCards = [];
+    private readonly ISetKeyFavoriteUseCase _setKeyFavorite;
+    private readonly IMoveKeyUseCase _moveKey;
+    private string _searchText = "";
+    private string _normalizedQuery = "";
+
     public bool HasCards => Cards.Count > 0;
+    public bool HasKeys => _allCards.Count > 0;
+    public bool HasNoResults => HasKeys && Cards.Count == 0;
+
+    public string SearchText
+    {
+        get => _searchText;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _searchText, value);
+            _normalizedQuery = SearchTextNormalizer.Normalize(value);
+            ApplyFilter();
+        }
+    }
 
     public HomeViewModel(
         DiscordService discordService,
@@ -43,6 +63,8 @@ public class HomeViewModel : ViewModelBase
         IDeleteKeyUseCase deleteKey,
         IUpdateKeyUseCase updateKey,
         IGenerateTotpCodeUseCase generateTotpCode,
+        ISetKeyFavoriteUseCase setKeyFavorite,
+        IMoveKeyUseCase moveKey,
         NotifyManagerService notifyManagerService,
         UserStatusService userStatusService,
         IWindowService windowService,
@@ -57,9 +79,15 @@ public class HomeViewModel : ViewModelBase
         _deleteKey = deleteKey;
         _updateKey = updateKey;
         _generateTotpCode = generateTotpCode;
+        _setKeyFavorite = setKeyFavorite;
+        _moveKey = moveKey;
 
         _refreshTimer.Tick += (_, _) => Refresh();
-        Cards.CollectionChanged += (_, _) => this.RaisePropertyChanged(nameof(HasCards));
+        Cards.CollectionChanged += (_, _) =>
+        {
+            this.RaisePropertyChanged(nameof(HasCards));
+            this.RaisePropertyChanged(nameof(HasNoResults));
+        };
         Refresh();
 
         var user = _userStatusService.User;
@@ -82,17 +110,90 @@ public class HomeViewModel : ViewModelBase
 
         var codes = _readTotpCodes.Execute(user.Id);
 
+        var hadKeys = HasKeys;
+        var ordered = new List<TotpCardViewModel>(codes.Count);
         foreach (var model in codes)
         {
-            var card = Cards.FirstOrDefault(c => c.Id == model.Id);
+            var card = _allCards.FirstOrDefault(c => c.Id == model.Id);
             if (card is null)
-                Cards.Add(new TotpCardViewModel(model, id => _ = OnCopyToClipboardCodeCommand(id), OnDeleteServiceKeyCommand, OnUpdateServiceKey));
+                card = new TotpCardViewModel(model, id => _ = OnCopyToClipboardCodeCommand(id), OnDeleteServiceKeyCommand, OnSetFavorite, OnMoveKey, OnUpdateServiceKey);
             else
                 card.Update(model);
+            ordered.Add(card);
         }
 
-        foreach (var stale in Cards.Where(c => codes.All(m => m.Id != c.Id)).ToList())
-            Cards.Remove(stale);
+        _allCards.Clear();
+        _allCards.AddRange(ordered);
+        if (hadKeys != HasKeys)
+            this.RaisePropertyChanged(nameof(HasKeys));
+
+        ApplyFilter();
+    }
+
+    private void ApplyFilter()
+    {
+        var searching = _normalizedQuery.Length > 0;
+        var visible = _allCards.Where(c => SearchTextNormalizer.Matches(c.ServiceName, _normalizedQuery)).ToList();
+
+        for (var i = 0; i < _allCards.Count; i++)
+        {
+            var card = _allCards[i];
+            var canMoveUp = !searching && i > 0 && _allCards[i - 1].IsFavorite == card.IsFavorite;
+            var canMoveDown = !searching && i < _allCards.Count - 1 && _allCards[i + 1].IsFavorite == card.IsFavorite;
+            card.SetMovability(canMoveUp, canMoveDown);
+        }
+
+        for (var i = Cards.Count - 1; i >= 0; i--)
+        {
+            if (!visible.Contains(Cards[i]))
+                Cards.RemoveAt(i);
+        }
+
+        for (var i = 0; i < visible.Count; i++)
+        {
+            if (i < Cards.Count && ReferenceEquals(Cards[i], visible[i]))
+                continue;
+
+            var current = Cards.IndexOf(visible[i]);
+            if (current < 0)
+                Cards.Insert(i, visible[i]);
+            else
+                Cards.Move(current, i);
+        }
+
+        this.RaisePropertyChanged(nameof(HasNoResults));
+    }
+
+    private void OnSetFavorite(Guid id, bool isFavorite)
+    {
+        RunKeyAction(() =>
+        {
+            _setKeyFavorite.Execute(id, isFavorite);
+            return true;
+        });
+    }
+
+    private void OnMoveKey(Guid id, KeyMoveDirection direction)
+    {
+        RunKeyAction(() => _moveKey.Execute(id, direction));
+    }
+
+    private void RunKeyAction(Func<bool> action)
+    {
+        try
+        {
+            if (action())
+                Refresh();
+        }
+        catch (IdentityAccessException e)
+        {
+            _notifyManagerService.SendNotifyInWindow(_localizer.Get("Error_" + e.Error), title: _localizer.Get("Home_NotifyTitle"), NotificationType.Error);
+            Refresh();
+        }
+        catch (Exception)
+        {
+            _notifyManagerService.SendNotifyInWindow(_localizer.Get("Error_Unexpected"), title: _localizer.Get("Home_NotifyTitle"), NotificationType.Error);
+        }
     }
 
     private async Task OnCopyToClipboardCodeCommand(Guid id)

@@ -10,12 +10,20 @@
              x:Class="AuthGatun.Views.HomeView"
              x:CompileBindings="True">
 
-    <Grid Margin="20,36,20,20" RowDefinitions="Auto,*">
+    <Grid Margin="20,36,20,20" RowDefinitions="Auto,Auto,*">
         <TextBlock Grid.Row="0" Text="{DynamicResource Home_Title}" FontSize="24" FontWeight="Bold" Margin="0,0,0,16" />
 
-        <StackPanel
+        <TextBox
             Grid.Row="1"
-            IsVisible="{Binding !HasCards}"
+            Classes="default"
+            Margin="0,0,0,12"
+            IsVisible="{Binding HasKeys}"
+            Text="{Binding SearchText}"
+            Watermark="{DynamicResource Search_Placeholder}" />
+
+        <StackPanel
+            Grid.Row="2"
+            IsVisible="{Binding !HasKeys}"
             VerticalAlignment="Center"
             HorizontalAlignment="Center"
             Spacing="6">
@@ -23,7 +31,17 @@
             <TextBlock Classes="muted" Text="{DynamicResource Home_EmptyHint}" HorizontalAlignment="Center" />
         </StackPanel>
 
-        <ScrollViewer Grid.Row="1" IsVisible="{Binding HasCards}">
+        <StackPanel
+            Grid.Row="2"
+            IsVisible="{Binding HasNoResults}"
+            VerticalAlignment="Center"
+            HorizontalAlignment="Center"
+            Spacing="6">
+            <TextBlock Text="{DynamicResource Search_NoResults}" FontSize="18" HorizontalAlignment="Center" />
+            <TextBlock Classes="muted" Text="{DynamicResource Search_NoResultsHint}" HorizontalAlignment="Center" />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="2" IsVisible="{Binding HasCards}">
             <ItemsControl ItemsSource="{Binding Cards}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:TotpCardViewModel">
@@ -38,6 +56,8 @@
                                 <ContextMenu>
                                     <MenuItem Header="{DynamicResource Home_CopyCode}" Command="{Binding CopyCommand}" />
                                     <MenuItem Header="{DynamicResource Edit_MenuItem}" Command="{Binding EditCommand}" />
+                                    <MenuItem Header="{DynamicResource Search_MoveUp}" Command="{Binding MoveUpCommand}" IsEnabled="{Binding CanMoveUp}" />
+                                    <MenuItem Header="{DynamicResource Search_MoveDown}" Command="{Binding MoveDownCommand}" IsEnabled="{Binding CanMoveDown}" />
                                     <MenuItem Header="{DynamicResource Home_Delete}" Command="{Binding DeleteCommand}" />
                                 </ContextMenu>
                             </Border.ContextMenu>
@@ -68,7 +88,16 @@
                                 </Border>
 
                                 <StackPanel Grid.Column="1" Margin="14,0" VerticalAlignment="Center" Spacing="2">
-                                    <TextBlock Text="{Binding ServiceName}" Opacity="0.8" TextTrimming="CharacterEllipsis" />
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Text="{Binding ServiceName}" Opacity="0.8" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                        <Button
+                                            Grid.Column="1"
+                                            Background="Transparent"
+                                            Padding="4,0"
+                                            Content="{Binding FavoriteGlyph}"
+                                            Command="{Binding ToggleFavoriteCommand}"
+                                            ToolTip.Tip="{DynamicResource Search_FavoriteTip}" />
+                                    </Grid>
                                     <TextBlock
                                         Classes="code"
                                         Classes.expiring="{Binding IsExpiring}"
