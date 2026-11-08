@@ -16,6 +16,7 @@ La aplicación utiliza Argon2 para el login, asegurando que solo tú puedas acce
 *   **Códigos en vivo:** La pantalla Home muestra cada código TOTP con una cuenta regresiva circular que pasa a ámbar a los 10 segundos y a rojo a los 5, antes de que el código cambie.
 *   **Privacidad de la ventana:** Desde Ajustes puedes hacer la ventana invisible o visible en capturas de pantalla y grabaciones. Está activado por defecto y solo está disponible en Windows; en otros sistemas la opción aparece deshabilitada.
 *   **Idiomas:** La app está disponible en inglés y español. La primera vez que se abre en un equipo usa el idioma del sistema (inglés si no es uno de los soportados) y se puede cambiar en cualquier momento desde Ajustes, sin reiniciar.
+*   **Escanear QR:** En la pestaña de claves puedes leer el código QR que da el servicio desde una imagen del portapapeles, desde un archivo o soltándola sobre la ventana (también acepta un enlace `otpauth://` copiado como texto). Se rellena el formulario para que revises el nombre y guardes. Solo se admiten claves TOTP de 6 dígitos, 30 segundos y SHA1, y no el QR de migración de Google Authenticator.
 
 ## Cómo Empezar
 
