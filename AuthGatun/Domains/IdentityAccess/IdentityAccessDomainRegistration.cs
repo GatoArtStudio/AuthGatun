@@ -45,6 +45,7 @@ public static class IdentityAccessDomainRegistration
         services.AddTransient<IRegenerateRecoveryCodeUseCase, RegenerateRecoveryCodeUseCase>();
         services.AddTransient<INewKeyUseCase, NewKeyUseCase>();
         services.AddTransient<IDeleteKeyUseCase, DeleteKeyUseCase>();
+        services.AddTransient<IUpdateKeyUseCase, UpdateKeyUseCase>();
         services.AddTransient<IReadKeysUseCase, ReadKeysUseCase>();
         services.AddTransient<IGenerateTotpCodeUseCase, GenerateTotpCodeUseCase>();
         services.AddTransient<IReadTotpCodesUseCase, ReadTotpCodesUseCase>();

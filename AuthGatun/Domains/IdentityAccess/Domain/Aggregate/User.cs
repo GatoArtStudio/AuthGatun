@@ -42,6 +42,23 @@ public class User
         _keys.Remove(key);
     }
     
+    public bool UpdateKey(Guid keyId, string serviceName, string? secretKey)
+    {
+        var index = _keys.FindIndex(k => k.Id == keyId);
+        if (index < 0) return false;
+
+        var current = _keys[index];
+        _keys[index] = new Key(
+            current.Id,
+            current.UserId,
+            serviceName,
+            secretKey ?? current.SecretKey,
+            current.Parameters,
+            current.IsFavorite,
+            current.SortOrder);
+        return true;
+    }
+
     public void AddKeys(List<Key> keys)
     {
         _keys.AddRange(keys);

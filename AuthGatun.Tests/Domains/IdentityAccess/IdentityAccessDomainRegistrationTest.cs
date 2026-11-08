@@ -20,6 +20,7 @@ public class IdentityAccessDomainRegistrationTest : IDisposable
     [InlineData(typeof(ILogoutUseCase))]
     [InlineData(typeof(INewKeyUseCase))]
     [InlineData(typeof(IDeleteKeyUseCase))]
+    [InlineData(typeof(IUpdateKeyUseCase))]
     [InlineData(typeof(IReadKeysUseCase))]
     [InlineData(typeof(IGenerateTotpCodeUseCase))]
     [InlineData(typeof(IReadTotpCodesUseCase))]

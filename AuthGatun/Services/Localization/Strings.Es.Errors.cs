@@ -12,6 +12,7 @@ public static partial class StringsSpanish
             ["Error_PasswordTooShort"] = "La nueva contraseña debe tener al menos 8 caracteres",
             ["Error_UserAlreadyExists"] = "Ese usuario ya existe, elige otro",
             ["Error_UserNotFound"] = "El usuario no existe",
+            ["Error_KeyNotFound"] = "La clave ya no existe",
             ["Error_WrongCurrentPassword"] = "La contraseña actual es incorrecta",
             ["Error_BackupPasswordTooShort"] = "La contraseña del respaldo debe tener al menos 8 caracteres",
             ["Error_InvalidBackupPassword"] = "La contraseña del respaldo no puede ser nula o contener espacios",
