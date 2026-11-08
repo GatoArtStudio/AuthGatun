@@ -9,11 +9,13 @@
              x:CompileBindings="True">
     
     <StackPanel
-        Margin="20"
+        Margin="20,36,20,20"
         Spacing="10">
-        
+
+        <TextBlock Text="Nueva clave" FontSize="24" FontWeight="Bold" Margin="0,0,0,8" />
+        <TextBlock Classes="muted" Text="Pega la clave secreta que te da el servicio al activar la verificación en dos pasos." />
         <TextBlock 
-            Text="Nombre del Servicio" />
+            Text="Nombre del Servicio" Margin="0,10,0,0" />
         <TextBox
             Watermark="Ingresa el nombre del servicio"
             Classes="default"
@@ -28,7 +30,7 @@
             Content="Guardar"
             HorizontalContentAlignment="Center"
             HorizontalAlignment="Stretch"
-            Classes="default"
+            Classes="default primary"
             Margin="0,20,0,0"
             Command="{Binding SaveKeyCommand}"/>
     </StackPanel>

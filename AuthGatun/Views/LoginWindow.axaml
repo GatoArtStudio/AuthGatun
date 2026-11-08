@@ -70,7 +70,7 @@
                 Content="Restablecer contraseña"
                 HorizontalContentAlignment="Center"
                 HorizontalAlignment="Stretch"
-                Classes="default"
+                Classes="default primary"
                 Margin="0,20,0,0"
                 Command="{Binding RecoverAccessCommand}" />
             <Button
@@ -79,7 +79,7 @@
                 HorizontalContentAlignment="Center"
                 HorizontalAlignment="Stretch"
                 IsDefault="True"
-                Classes="default"
+                Classes="default primary"
                 Margin="0,20,0,0"
                 Command="{Binding LoginVerificationCommand}" />
             <Button
