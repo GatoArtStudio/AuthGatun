@@ -8,7 +8,6 @@ using AuthGatun.Core.AvaloniaUI;
 using AuthGatun.Domains.IdentityAccess.Application.Ports.Inbound;
 using AuthGatun.Domains.IdentityAccess.Application.Models;
 using AuthGatun.Helpers;
-using AuthGatun.Models;
 using AuthGatun.Services;
 using Avalonia.Controls.Notifications;
 using Avalonia.Input.Platform;
@@ -19,9 +18,10 @@ namespace AuthGatun.ViewModels;
 
 public class HomeViewModel : ViewModelBase
 {
-    public ObservableCollection<UserKey> UserKeys { get; set; }
-    
-    private readonly IReadKeysUseCase _readKeys;
+    public ObservableCollection<TotpCardViewModel> Cards { get; } = new();
+
+    private readonly IReadTotpCodesUseCase _readTotpCodes;
+    private readonly DispatcherTimer _refreshTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
     private readonly IDeleteKeyUseCase _deleteKey;
     private readonly IGenerateTotpCodeUseCase _generateTotpCode;
     
@@ -31,12 +31,11 @@ public class HomeViewModel : ViewModelBase
 
     private static readonly TimeSpan ClipboardClearDelay = TimeSpan.FromSeconds(30);
 
-    public ReactiveCommand<Guid, Unit> CopyToClipboardCodeCommand { get; }
-    public ReactiveCommand<Guid, Unit> DeleteServiceKeyCommand { get; }
+    public bool HasCards => Cards.Count > 0;
 
     public HomeViewModel(
         DiscordService discordService,
-        IReadKeysUseCase readKeys,
+        IReadTotpCodesUseCase readTotpCodes,
         IDeleteKeyUseCase deleteKey,
         IGenerateTotpCodeUseCase generateTotpCode,
         NotifyManagerService notifyManagerService,
@@ -47,38 +46,45 @@ public class HomeViewModel : ViewModelBase
         _notifyManagerService = notifyManagerService;
         _userStatusService = userStatusService;
         _windowService = windowService;
-        _readKeys = readKeys;
+        _readTotpCodes = readTotpCodes;
         _deleteKey = deleteKey;
         _generateTotpCode = generateTotpCode;
 
-        CopyToClipboardCodeCommand = ReactiveCommand.CreateFromTask<Guid>(OnCopyToClipboardCodeCommand);
-        DeleteServiceKeyCommand = ReactiveCommand.Create<Guid>(OnDeleteServiceKeyCommand, Observable.Return(true));
+        _refreshTimer.Tick += (_, _) => Refresh();
+        Cards.CollectionChanged += (_, _) => this.RaisePropertyChanged(nameof(HasCards));
+        Refresh();
 
-        UserKeys = GetUserKeys();
         var user = _userStatusService.User;
         discordService.UpdatePresence(user?.UserName ?? "AuthGatun", "Observando las claves TOTP.");
     }
 
-    private ObservableCollection<UserKey> GetUserKeys()
+    public void StartRefreshing()
     {
-        ObservableCollection<UserKey> userKeys = new ObservableCollection<UserKey>();
-        
+        Refresh();
+        _refreshTimer.Start();
+    }
+
+    public void StopRefreshing() => _refreshTimer.Stop();
+
+    private void Refresh()
+    {
         var user = _userStatusService.User;
         if (user is null)
-            return userKeys;
+            return;
 
-        foreach (KeySummary key in _readKeys.Execute(user.Id))
+        var codes = _readTotpCodes.Execute(user.Id);
+
+        foreach (var model in codes)
         {
-            userKeys.Add(
-                new UserKey(
-                    key.Id,
-                    key.ServiceName,
-                    DeleteServiceKeyCommand
-                )
-            );
+            var card = Cards.FirstOrDefault(c => c.Id == model.Id);
+            if (card is null)
+                Cards.Add(new TotpCardViewModel(model, id => _ = OnCopyToClipboardCodeCommand(id), OnDeleteServiceKeyCommand));
+            else
+                card.Update(model);
         }
-        
-        return userKeys;
+
+        foreach (var stale in Cards.Where(c => codes.All(m => m.Id != c.Id)).ToList())
+            Cards.Remove(stale);
     }
 
     private async Task OnCopyToClipboardCodeCommand(Guid id)
@@ -94,7 +100,7 @@ public class HomeViewModel : ViewModelBase
                 return;
             }
         
-            _notifyManagerService.SendNotifyInWindow($"Código copiado con éxito, código: {code}", title: "Gestor de claves TOTP");
+            _notifyManagerService.SendNotifyInWindow("Código copiado. Se borrará del portapapeles en 30 segundos.", title: "Gestor de claves TOTP", NotificationType.Success);
             _ = Task.Run(() => clipboard.SetTextAsync(code));
             _ = ClearClipboardLaterAsync(clipboard, code);
         }
@@ -121,10 +127,6 @@ public class HomeViewModel : ViewModelBase
         
         _notifyManagerService.SendNotifyInWindow("Clave eliminada con éxito", title: "Gestor de claves TOTP");
 
-        UserKey? userKey = UserKeys
-            .FirstOrDefault(u => u.Id == id);
-
-        if (userKey != null)
-            UserKeys.Remove(userKey);
+        Refresh();
     }
 }

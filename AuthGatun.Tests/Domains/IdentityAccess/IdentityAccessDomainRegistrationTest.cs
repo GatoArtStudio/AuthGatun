@@ -22,6 +22,7 @@ public class IdentityAccessDomainRegistrationTest : IDisposable
     [InlineData(typeof(IDeleteKeyUseCase))]
     [InlineData(typeof(IReadKeysUseCase))]
     [InlineData(typeof(IGenerateTotpCodeUseCase))]
+    [InlineData(typeof(IReadTotpCodesUseCase))]
     [InlineData(typeof(IChangePasswordUseCase))]
     [InlineData(typeof(IRecoverAccessUseCase))]
     [InlineData(typeof(IRegenerateRecoveryCodeUseCase))]

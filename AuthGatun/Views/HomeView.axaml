@@ -3,50 +3,87 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:AuthGatun.ViewModels"
-             mc:Ignorable="d" 
-                d:DesignWidth="800"
-                d:DesignHeight="450"
-                x:DataType="vm:HomeViewModel"
+             mc:Ignorable="d"
+             d:DesignWidth="500"
+             d:DesignHeight="600"
+             x:DataType="vm:HomeViewModel"
              x:Class="AuthGatun.Views.HomeView"
              x:CompileBindings="True">
-    
-    <Design.DataContext>
-        <vm:HomeViewModel/>
-    </Design.DataContext>
-    
-    <UserControl.Styles>
-        <Style Selector="Button.keys">
-            <Setter Property="Margin" Value="0 10 0 0" />
-            <Setter Property="HorizontalContentAlignment" Value="Center" />
-            <Setter Property="HorizontalAlignment" Value="Stretch" />
-        </Style>
-    </UserControl.Styles>
-    
-    <StackPanel
-        x:Name="LayoutUp">
-        <ItemsControl 
-            Margin="20"
-            ItemsSource='{Binding UserKeys}'>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <Button
-                        Classes="keys default"
-                        Content='{Binding ServiceName}'
-                        HorizontalAlignment='Stretch'
-                        CommandParameter="{Binding Id}"
-                        Command="{Binding $parent[ItemsControl].((vm:HomeViewModel)DataContext).CopyToClipboardCodeCommand}"
-                        >
-                        <Button.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem 
-                                    Header="Eliminar"
-                                    CommandParameter="{Binding Id}"
-                                    Command="{Binding Command}"/>
-                            </ContextMenu>
-                        </Button.ContextMenu>
-                    </Button>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-    </StackPanel>
+
+    <Grid Margin="20,36,20,20" RowDefinitions="Auto,*">
+        <TextBlock Grid.Row="0" Text="Tus códigos" FontSize="24" FontWeight="Bold" Margin="0,0,0,16" />
+
+        <StackPanel
+            Grid.Row="1"
+            IsVisible="{Binding !HasCards}"
+            VerticalAlignment="Center"
+            HorizontalAlignment="Center"
+            Spacing="6">
+            <TextBlock Text="Aún no tienes claves" FontSize="18" HorizontalAlignment="Center" />
+            <TextBlock Classes="muted" Text="Agrégalas desde la pestaña Keys." HorizontalAlignment="Center" />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" IsVisible="{Binding HasCards}">
+            <ItemsControl ItemsSource="{Binding Cards}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:TotpCardViewModel">
+                        <Border
+                            Classes="card"
+                            Classes.expiring="{Binding IsExpiring}"
+                            Classes.critical="{Binding IsCritical}"
+                            Margin="0,0,0,10"
+                            Cursor="Hand"
+                            Background="Transparent">
+                            <Border.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Copiar código" Command="{Binding CopyCommand}" />
+                                    <MenuItem Header="Eliminar" Command="{Binding DeleteCommand}" />
+                                </ContextMenu>
+                            </Border.ContextMenu>
+                            <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                                <Border Grid.Column="0" Classes="avatar">
+                                    <TextBlock
+                                        Text="{Binding Initial}"
+                                        FontWeight="Bold"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center" />
+                                </Border>
+
+                                <StackPanel Grid.Column="1" Margin="14,0" VerticalAlignment="Center" Spacing="2">
+                                    <TextBlock Text="{Binding ServiceName}" Opacity="0.8" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock
+                                        Classes="code"
+                                        Classes.expiring="{Binding IsExpiring}"
+                                        Classes.critical="{Binding IsCritical}"
+                                        Text="{Binding FormattedCode}" />
+                                </StackPanel>
+
+                                <Grid Grid.Column="2" Margin="0,0,14,0" Width="40" Height="40" VerticalAlignment="Center"
+                                      ToolTip.Tip="Segundos antes de que cambie el código">
+                                    <Arc
+                                        Classes="countdown"
+                                        Classes.expiring="{Binding IsExpiring}"
+                                        Classes.critical="{Binding IsCritical}"
+                                        SweepAngle="{Binding SweepAngle}"
+                                        Width="38" Height="38" />
+                                    <TextBlock
+                                        Text="{Binding SecondsRemaining}"
+                                        FontSize="12"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center" />
+                                </Grid>
+
+                                <Button
+                                    Grid.Column="3"
+                                    Classes="default primary"
+                                    Content="Copiar"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding CopyCommand}" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
 </UserControl>

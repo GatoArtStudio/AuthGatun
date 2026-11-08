@@ -8,8 +8,8 @@
              x:DataType="vm:SettingsViewModel"
              x:CompileBindings="True">
     <ScrollViewer>
-        <StackPanel Margin="20" Spacing="10">
-            <TextBlock Text="Segundo plano" FontSize="20" FontWeight="Bold" />
+        <StackPanel Margin="20,36,20,20" Spacing="10">
+            <TextBlock Classes="section" Text="Segundo plano" />
             <ToggleSwitch
                 IsChecked="{Binding RunInBackground, Mode=TwoWay}"
                 OnContent="Mantener la app y la sesión en segundo plano al cerrar la ventana"
@@ -20,13 +20,13 @@
                 Opacity="0.7"
                 Text="En Linux el icono de bandeja depende del escritorio; en GNOME necesitas la extensión AppIndicator. Si no ves el icono, vuelve a ejecutar AuthGatun para traer la ventana al frente." />
 
-            <TextBlock Text="Bloqueo automático por inactividad" Margin="0,20,0,0" FontSize="20" FontWeight="Bold" />
+            <TextBlock Classes="section" Text="Bloqueo automático por inactividad" />
             <ComboBox
                 ItemsSource="{Binding AutoLockOptions}"
                 SelectedItem="{Binding SelectedAutoLock, Mode=TwoWay}"
                 HorizontalAlignment="Stretch" />
 
-            <TextBlock Text="Cambiar contraseña" Margin="0,20,0,0" FontSize="20" FontWeight="Bold" />
+            <TextBlock Classes="section" Text="Cambiar contraseña" />
             <TextBox
                 Text="{Binding CurrentPassword, Mode=TwoWay}"
                 Watermark="Contraseña actual"
@@ -49,7 +49,7 @@
                 Classes="default"
                 Command="{Binding ChangePasswordCommand}" />
 
-            <TextBlock Text="Respaldo de claves" FontSize="20" FontWeight="Bold" Margin="0,20,0,0" />
+            <TextBlock Classes="section" Text="Respaldo de claves" />
             <TextBlock
                 TextWrapping="Wrap"
                 Text="El respaldo se cifra con su propia contraseña. Guárdala: sin ella no se puede importar." />
@@ -76,7 +76,7 @@
                 Classes="default"
                 Command="{Binding ImportKeysCommand}" />
 
-            <TextBlock Text="Código de recuperación" FontSize="20" FontWeight="Bold" Margin="0,20,0,0" />
+            <TextBlock Classes="section" Text="Código de recuperación" />
             <TextBlock
                 TextWrapping="Wrap"
                 Text="Generar uno nuevo invalida el anterior. Se muestra una sola vez, guárdalo en un lugar seguro." />
