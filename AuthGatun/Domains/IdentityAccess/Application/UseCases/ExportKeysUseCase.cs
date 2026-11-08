@@ -11,9 +11,9 @@ public class ExportKeysUseCase(IUserRepository repository, IKeyBackupCodec codec
     public byte[] Execute(Guid userId, string backupPassword)
     {
         if (string.IsNullOrWhiteSpace(backupPassword) || backupPassword.Length < 8)
-            throw new ArgumentException("The backup password must be at least 8 characters long.");
+            throw new IdentityAccessException(IdentityAccessError.BackupPasswordTooShort, "The backup password must be at least 8 characters long.");
 
-        var user = repository.Read(userId) ?? throw new ArgumentException("The user is invalid or does not exist.");
+        var user = repository.Read(userId) ?? throw new IdentityAccessException(IdentityAccessError.UserNotFound, "The user is invalid or does not exist.");
 
         var keys = user.Keys.Select(key => new BackupKey(key.ServiceName, key.SecretKey)).ToList();
         return codec.Encode(keys, backupPassword);

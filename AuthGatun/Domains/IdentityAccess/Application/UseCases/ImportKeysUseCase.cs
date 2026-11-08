@@ -12,12 +12,12 @@ public class ImportKeysUseCase(IUserRepository repository, IKeyBackupCodec codec
     public ImportResult Execute(Guid userId, byte[] backup, string backupPassword)
     {
         if (string.IsNullOrWhiteSpace(backupPassword))
-            throw new ArgumentException("The backup password cannot be null or contain spaces.");
+            throw new IdentityAccessException(IdentityAccessError.InvalidBackupPassword, "The backup password cannot be null or contain spaces.");
 
-        var user = repository.Read(userId) ?? throw new ArgumentException("The user is invalid or does not exist.");
+        var user = repository.Read(userId) ?? throw new IdentityAccessException(IdentityAccessError.UserNotFound, "The user is invalid or does not exist.");
 
         var keys = codec.Decode(backup, backupPassword)
-                   ?? throw new ArgumentException("The backup password is incorrect or the file is not a valid backup.");
+                   ?? throw new IdentityAccessException(IdentityAccessError.WrongBackupPassword, "The backup password is incorrect or the file is not a valid backup.");
 
         var known = new HashSet<(string, string)>();
         foreach (var existing in user.Keys)
@@ -39,7 +39,7 @@ public class ImportKeysUseCase(IUserRepository repository, IKeyBackupCodec codec
         }
 
         if (imported > 0 && !repository.Save(user))
-            throw new InvalidOperationException("The imported keys could not be saved.");
+            throw new IdentityAccessException(IdentityAccessError.SaveFailed, "The imported keys could not be saved.");
 
         return new ImportResult(imported, skipped);
     }

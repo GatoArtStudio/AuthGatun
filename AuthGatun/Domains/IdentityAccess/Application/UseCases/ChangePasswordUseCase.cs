@@ -14,17 +14,17 @@ public class ChangePasswordUseCase(
     public void Execute(Guid userId, string currentPassword, string newPassword)
     {
         if (string.IsNullOrWhiteSpace(currentPassword))
-            throw new ArgumentException("The current password cannot be null or contain spaces.");
+            throw new IdentityAccessException(IdentityAccessError.InvalidPassword, "The current password cannot be null or contain spaces.");
 
         if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 8)
-            throw new ArgumentException("The new password must be at least 8 characters long.");
+            throw new IdentityAccessException(IdentityAccessError.PasswordTooShort, "The new password must be at least 8 characters long.");
 
-        var user = repository.Read(userId) ?? throw new ArgumentException("The user is invalid or does not exist.");
+        var user = repository.Read(userId) ?? throw new IdentityAccessException(IdentityAccessError.UserNotFound, "The user is invalid or does not exist.");
 
         if (!vault.Open(user.Username.Value, currentPassword))
-            throw new ArgumentException("The current password is incorrect.");
+            throw new IdentityAccessException(IdentityAccessError.WrongCurrentPassword, "The current password is incorrect.");
 
-        user = repository.Read(userId) ?? throw new ArgumentException("The user is invalid or does not exist.");
+        user = repository.Read(userId) ?? throw new IdentityAccessException(IdentityAccessError.UserNotFound, "The user is invalid or does not exist.");
 
         vault.ChangePassword(newPassword);
         user.ChangePassword(new Password(passwordHasher.Hash(newPassword)));

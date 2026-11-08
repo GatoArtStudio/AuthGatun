@@ -14,7 +14,7 @@ public class ReadTotpCodesUseCase(IUserRepository repository, ITotpCodeGenerator
     {
         var user = repository.Read(userId);
         if (user is null)
-            throw new ArgumentException("The user is invalid or does not exist.");
+            throw new IdentityAccessException(IdentityAccessError.UserNotFound, "The user is invalid or does not exist.");
 
         var secondsRemaining = totpCodeGenerator.RemainingSeconds();
 

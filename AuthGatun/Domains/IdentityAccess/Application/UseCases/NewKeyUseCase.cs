@@ -11,7 +11,7 @@ public class NewKeyUseCase(IDomainEventPublisher publisher, IUserRepository repo
     public void Execute(NewKeyRequest request)
     {
         var user = repository.Read(request.UserId);
-        if (user is null) throw new Exception("IdentityAccess not found");
+        if (user is null) throw new IdentityAccessException(IdentityAccessError.UserNotFound, "IdentityAccess not found");
 
         user.AddKey(new Key(Guid.NewGuid(), request.UserId, request.ServiceName, request.SecretKey));
         repository.Save(user);
