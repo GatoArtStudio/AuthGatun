@@ -14,6 +14,7 @@ La aplicación utiliza Argon2 para el login, asegurando que solo tú puedas acce
 *   **Almacenamiento Local:** Utiliza SQLite para almacenar los datos de forma local y segura en tu equipo.
 *   **Segundo plano:** Desde Ajustes puedes mantener la app y tu sesión abiertas al cerrar la ventana (icono de bandeja con *Abrir*, *Cerrar sesión* y *Salir*). Si ejecutas AuthGatun de nuevo, trae al frente la ventana ya abierta. En Linux el icono de bandeja depende del escritorio (en GNOME necesitas la extensión AppIndicator). Con la sesión en segundo plano la clave de tu bóveda permanece en memoria, por eso el bloqueo automático por inactividad (configurable) también cuenta en segundo plano y *Salir* la borra de memoria.
 *   **Códigos en vivo:** La pantalla Home muestra cada código TOTP con una cuenta regresiva circular que pasa a ámbar a los 10 segundos y a rojo a los 5, antes de que el código cambie.
+*   **Privacidad de la ventana:** Desde Ajustes puedes hacer la ventana invisible o visible en capturas de pantalla y grabaciones. Está activado por defecto y solo está disponible en Windows; en otros sistemas la opción aparece deshabilitada.
 
 ## Cómo Empezar
 

@@ -64,6 +64,14 @@ public class WindowService : IWindowService
         }
     }
 
+    public IReadOnlyList<Window> OpenWindows()
+    {
+        lock (_lock)
+        {
+            return _windows.Select(entry => entry.Window).ToList();
+        }
+    }
+
     public IClipboard? GetClipboard()
     {
         var currentWindow = CurrentWindow();

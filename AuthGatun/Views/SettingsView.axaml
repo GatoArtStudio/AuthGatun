@@ -20,6 +20,17 @@
                 Opacity="0.7"
                 Text="En Linux el icono de bandeja depende del escritorio; en GNOME necesitas la extensión AppIndicator. Si no ves el icono, vuelve a ejecutar AuthGatun para traer la ventana al frente." />
 
+            <TextBlock Classes="section" Text="Privacidad de la ventana" />
+            <ToggleSwitch
+                IsEnabled="{Binding IsScreenCaptureExclusionSupported}"
+                IsChecked="{Binding HideFromScreenCapture, Mode=TwoWay}"
+                OnContent="Ventana invisible en capturas de pantalla y grabaciones"
+                OffContent="Ventana visible en capturas de pantalla y grabaciones" />
+            <TextBlock
+                IsVisible="{Binding ShowScreenCaptureUnsupportedNote}"
+                Classes="muted"
+                Text="Esta opción no está disponible en tu sistema operativo." />
+
             <TextBlock Classes="section" Text="Bloqueo automático por inactividad" />
             <ComboBox
                 ItemsSource="{Binding AutoLockOptions}"

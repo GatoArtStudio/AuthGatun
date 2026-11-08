@@ -1,8 +1,10 @@
-﻿using Avalonia.Controls;
+using Avalonia.Controls;
 
 namespace AuthGatun.Core.Platform;
 
 public interface IPlatformService
 {
-    bool HiddenCurrentWindowByExcludeFromCapture(Window window);
+    bool SupportsScreenCaptureExclusion { get; }
+
+    bool SetExcludedFromScreenCapture(Window window, bool excluded);
 }

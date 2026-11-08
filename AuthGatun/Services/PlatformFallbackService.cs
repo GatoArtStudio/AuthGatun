@@ -5,5 +5,7 @@ namespace AuthGatun.Services;
 
 public class PlatformFallbackService : IPlatformService
 {
-    public bool HiddenCurrentWindowByExcludeFromCapture(Window window) => false;
+    public bool SupportsScreenCaptureExclusion => false;
+
+    public bool SetExcludedFromScreenCapture(Window window, bool excluded) => false;
 }

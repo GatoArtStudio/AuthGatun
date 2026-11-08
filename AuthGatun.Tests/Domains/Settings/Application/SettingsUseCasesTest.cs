@@ -23,15 +23,15 @@ public class SettingsUseCasesTest
     {
         var settings = new GetSettingsUseCase(_repository).Execute();
 
-        Assert.Equal(new AppSettingsModel(false, 5), settings);
+        Assert.Equal(new AppSettingsModel(false, 5, true), settings);
     }
 
     [Fact]
     public void UpdateSavesTheSettingsAndGetReturnsThem()
     {
-        new UpdateSettingsUseCase(_repository).Execute(new AppSettingsModel(true, 15));
+        new UpdateSettingsUseCase(_repository).Execute(new AppSettingsModel(true, 15, false));
 
-        Assert.Equal(new AppSettingsModel(true, 15), new GetSettingsUseCase(_repository).Execute());
+        Assert.Equal(new AppSettingsModel(true, 15, false), new GetSettingsUseCase(_repository).Execute());
     }
 
     [Theory]
@@ -41,7 +41,7 @@ public class SettingsUseCasesTest
     public void UpdateRejectsUnsupportedAutoLockTimes(int minutes)
     {
         Assert.Throws<ArgumentException>(() =>
-            new UpdateSettingsUseCase(_repository).Execute(new AppSettingsModel(false, minutes)));
+            new UpdateSettingsUseCase(_repository).Execute(new AppSettingsModel(false, minutes, true)));
         Assert.Null(_repository.Stored);
     }
 }

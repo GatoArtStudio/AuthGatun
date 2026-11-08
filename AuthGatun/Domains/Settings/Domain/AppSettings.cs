@@ -8,17 +8,19 @@ public sealed record AppSettings
 {
     public static readonly IReadOnlyList<int> AllowedAutoLockMinutes = [0, 1, 5, 15, 30];
 
-    public static AppSettings Default => new(false, 5);
+    public static AppSettings Default => new(false, 5, true);
 
     public bool RunInBackground { get; }
     public int AutoLockMinutes { get; }
+    public bool HideFromScreenCapture { get; }
 
-    public AppSettings(bool runInBackground, int autoLockMinutes)
+    public AppSettings(bool runInBackground, int autoLockMinutes, bool hideFromScreenCapture)
     {
         if (!AllowedAutoLockMinutes.Contains(autoLockMinutes))
             throw new ArgumentException("The auto lock time is not one of the allowed values.", nameof(autoLockMinutes));
 
         RunInBackground = runInBackground;
         AutoLockMinutes = autoLockMinutes;
+        HideFromScreenCapture = hideFromScreenCapture;
     }
 }
