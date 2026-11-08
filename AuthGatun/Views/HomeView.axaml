@@ -51,7 +51,9 @@
                             Classes.critical="{Binding IsCritical}"
                             Margin="0,0,0,10"
                             Cursor="Hand"
-                            Background="Transparent">
+                            Background="Transparent"
+                            PointerEntered="OnCardPointerEntered"
+                            PointerExited="OnCardPointerExited">
                             <Border.ContextMenu>
                                 <ContextMenu>
                                     <MenuItem Header="{DynamicResource Home_CopyCode}" Command="{Binding CopyCommand}" />
@@ -98,11 +100,23 @@
                                             Command="{Binding ToggleFavoriteCommand}"
                                             ToolTip.Tip="{DynamicResource Search_FavoriteTip}" />
                                     </Grid>
-                                    <TextBlock
-                                        Classes="code"
-                                        Classes.expiring="{Binding IsExpiring}"
-                                        Classes.critical="{Binding IsCritical}"
-                                        Text="{Binding FormattedCode}" />
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <TextBlock
+                                            Classes="code"
+                                            Classes.expiring="{Binding IsExpiring}"
+                                            Classes.critical="{Binding IsCritical}"
+                                            Text="{Binding DisplayCode}" />
+                                        <Button
+                                            Classes="default"
+                                            IsVisible="{Binding PrivacyEnabled}"
+                                            VerticalAlignment="Center"
+                                            Command="{Binding ToggleRevealCommand}">
+                                            <Panel>
+                                                <TextBlock Text="{DynamicResource Privacy_Show}" IsVisible="{Binding !IsRevealed}" />
+                                                <TextBlock Text="{DynamicResource Privacy_Hide}" IsVisible="{Binding IsRevealed}" />
+                                            </Panel>
+                                        </Button>
+                                    </StackPanel>
                                 </StackPanel>
 
                                 <Grid Grid.Column="2" Margin="0,0,14,0" Width="40" Height="40" VerticalAlignment="Center"
