@@ -142,4 +142,31 @@ public class SqlCipherVaultTest : IDisposable
         Assert.True(reopened.OpenWithRecoveryCode("gato", secondCode.ToLowerInvariant()));
         Assert.NotNull(new SqLiteRepository(reopened).FromName("gato"));
     }
+
+    [Fact]
+    public void KeyParametersFavoriteAndOrderSurviveSavingAndReopening()
+    {
+        Guid keyId;
+        using (var vault = NewVault())
+        {
+            vault.Create("gato", Password);
+            var user = NewUser("gato");
+            keyId = Guid.NewGuid();
+            user.AddKey(new Key(Guid.NewGuid(), user.Id, "first", "JBSWY3DPEHPK3PXP"));
+            user.AddKey(new Key(
+                keyId, user.Id, "second", "JBSWY3DPEHPK3PXP",
+                new TotpParameters(TotpAlgorithm.Sha256, 8, 60), isFavorite: true, sortOrder: 2));
+            new SqLiteRepository(vault).Save(user);
+        }
+
+        using var reopened = NewVault();
+        Assert.True(reopened.Open("gato", Password));
+        var keys = new SqLiteRepository(reopened).FromName("gato")!.Keys;
+
+        var key = keys.Single(candidate => candidate.Id == keyId);
+        Assert.Equal(new TotpParameters(TotpAlgorithm.Sha256, 8, 60), key.Parameters);
+        Assert.True(key.IsFavorite);
+        Assert.Equal(2, key.SortOrder);
+        Assert.Equal(TotpParameters.Default, keys.Single(candidate => candidate.Id != keyId).Parameters);
+    }
 }

@@ -1,4 +1,5 @@
 using System;
+using AuthGatun.Domains.IdentityAccess.Domain.ValueObject;
 
 namespace AuthGatun.Domains.IdentityAccess.Domain.Model;
 
@@ -8,8 +9,18 @@ public record Key
     public Guid UserId { get; init; }
     public string ServiceName { get; init; }
     public string SecretKey { get; init; }
+    public TotpParameters Parameters { get; init; }
+    public bool IsFavorite { get; init; }
+    public int SortOrder { get; init; }
 
-    public Key(Guid id, Guid userId, string serviceName, string secretKey)
+    public Key(
+        Guid id,
+        Guid userId,
+        string serviceName,
+        string secretKey,
+        TotpParameters? parameters = null,
+        bool isFavorite = false,
+        int sortOrder = 0)
     {
         if (string.IsNullOrWhiteSpace(serviceName))
             throw new ArgumentException("Service name cannot be null or whitespace", nameof(serviceName));
@@ -21,6 +32,9 @@ public record Key
         UserId = userId;
         ServiceName = serviceName;
         SecretKey = secretKey;
+        Parameters = parameters ?? TotpParameters.Default;
+        IsFavorite = isFavorite;
+        SortOrder = sortOrder;
     }
 
     public virtual bool Equals(Key? other)

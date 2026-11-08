@@ -24,7 +24,9 @@ public class ReadTotpCodesUseCase(IUserRepository repository, ITotpCodeGenerator
                 key.ServiceName,
                 totpCodeGenerator.Generate(key.SecretKey),
                 secondsRemaining,
-                totpCodeGenerator.PeriodSeconds))
+                totpCodeGenerator.PeriodSeconds,
+                key.IsFavorite,
+                key.SortOrder))
             .ToList();
     }
 }
