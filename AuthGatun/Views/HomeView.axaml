@@ -3,50 +3,151 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:AuthGatun.ViewModels"
-             mc:Ignorable="d" 
-                d:DesignWidth="800"
-                d:DesignHeight="450"
-                x:DataType="vm:HomeViewModel"
+             mc:Ignorable="d"
+             d:DesignWidth="500"
+             d:DesignHeight="600"
+             x:DataType="vm:HomeViewModel"
              x:Class="AuthGatun.Views.HomeView"
              x:CompileBindings="True">
-    
-    <Design.DataContext>
-        <vm:HomeViewModel/>
-    </Design.DataContext>
-    
-    <UserControl.Styles>
-        <Style Selector="Button.keys">
-            <Setter Property="Margin" Value="0 10 0 0" />
-            <Setter Property="HorizontalContentAlignment" Value="Center" />
-            <Setter Property="HorizontalAlignment" Value="Stretch" />
-        </Style>
-    </UserControl.Styles>
-    
-    <StackPanel
-        x:Name="LayoutUp">
-        <ItemsControl 
-            Margin="20"
-            ItemsSource='{Binding UserKeys}'>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <Button
-                        Classes="keys default"
-                        Content='{Binding ServiceName}'
-                        HorizontalAlignment='Stretch'
-                        CommandParameter="{Binding Id}"
-                        Command="{Binding $parent[ItemsControl].((vm:HomeViewModel)DataContext).CopyToClipboardCodeCommand}"
-                        >
-                        <Button.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem 
-                                    Header="Eliminar"
-                                    CommandParameter="{Binding Id}"
-                                    Command="{Binding Command}"/>
-                            </ContextMenu>
-                        </Button.ContextMenu>
-                    </Button>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-    </StackPanel>
+
+    <Grid Margin="20,36,20,20" RowDefinitions="Auto,Auto,*">
+        <TextBlock Grid.Row="0" Text="{DynamicResource Home_Title}" FontSize="24" FontWeight="Bold" Margin="0,0,0,16" />
+
+        <TextBox
+            Grid.Row="1"
+            Classes="default"
+            Margin="0,0,0,12"
+            IsVisible="{Binding HasKeys}"
+            Text="{Binding SearchText}"
+            Watermark="{DynamicResource Search_Placeholder}" />
+
+        <StackPanel
+            Grid.Row="2"
+            IsVisible="{Binding !HasKeys}"
+            VerticalAlignment="Center"
+            HorizontalAlignment="Center"
+            Spacing="6">
+            <TextBlock Text="{DynamicResource Home_Empty}" FontSize="18" HorizontalAlignment="Center" />
+            <TextBlock Classes="muted" Text="{DynamicResource Home_EmptyHint}" HorizontalAlignment="Center" />
+        </StackPanel>
+
+        <StackPanel
+            Grid.Row="2"
+            IsVisible="{Binding HasNoResults}"
+            VerticalAlignment="Center"
+            HorizontalAlignment="Center"
+            Spacing="6">
+            <TextBlock Text="{DynamicResource Search_NoResults}" FontSize="18" HorizontalAlignment="Center" />
+            <TextBlock Classes="muted" Text="{DynamicResource Search_NoResultsHint}" HorizontalAlignment="Center" />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="2" IsVisible="{Binding HasCards}">
+            <ItemsControl ItemsSource="{Binding Cards}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:TotpCardViewModel">
+                        <Border
+                            Classes="card"
+                            Classes.expiring="{Binding IsExpiring}"
+                            Classes.critical="{Binding IsCritical}"
+                            Margin="0,0,0,10"
+                            Cursor="Hand"
+                            Background="Transparent"
+                            Tapped="OnCardTapped"
+                            PointerEntered="OnCardPointerEntered"
+                            PointerExited="OnCardPointerExited">
+                            <Border.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="{DynamicResource Home_CopyCode}" Command="{Binding CopyCommand}" />
+                                    <MenuItem Header="{DynamicResource Edit_MenuItem}" Command="{Binding EditCommand}" />
+                                    <MenuItem Header="{DynamicResource Search_MoveUp}" Command="{Binding MoveUpCommand}" IsEnabled="{Binding CanMoveUp}" />
+                                    <MenuItem Header="{DynamicResource Search_MoveDown}" Command="{Binding MoveDownCommand}" IsEnabled="{Binding CanMoveDown}" />
+                                    <MenuItem Header="{DynamicResource Home_Delete}" Command="{Binding DeleteCommand}" />
+                                </ContextMenu>
+                            </Border.ContextMenu>
+                            <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                                <Popup
+                                    IsOpen="{Binding IsEditing, Mode=TwoWay}"
+                                    PlacementTarget="{Binding $parent[Border]}"
+                                    Placement="Bottom"
+                                    IsLightDismissEnabled="True">
+                                    <Border Classes="card" Padding="16" Width="320">
+                                        <StackPanel Spacing="10">
+                                            <TextBlock Text="{DynamicResource Edit_Title}" FontWeight="Bold" />
+                                            <TextBox Text="{Binding EditServiceName, Mode=TwoWay}" Watermark="{DynamicResource Edit_NameLabel}" />
+                                            <TextBox Text="{Binding EditSecretKey, Mode=TwoWay}" PasswordChar="●" Watermark="{DynamicResource Edit_SecretWatermark}" />
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                                                <Button Content="{DynamicResource Edit_Cancel}" Command="{Binding CancelEditCommand}" />
+                                                <Button Classes="default primary" Content="{DynamicResource Edit_Save}" Command="{Binding SaveEditCommand}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </Popup>
+                                <Border Grid.Column="0" Classes="avatar">
+                                    <TextBlock
+                                        Text="{Binding Initial}"
+                                        FontWeight="Bold"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center" />
+                                </Border>
+
+                                <StackPanel Grid.Column="1" Margin="14,0" VerticalAlignment="Center" Spacing="2">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Text="{Binding ServiceName}" Opacity="0.8" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                        <Button
+                                            Grid.Column="1"
+                                            Background="Transparent"
+                                            Padding="4,0"
+                                            Content="{Binding FavoriteGlyph}"
+                                            Command="{Binding ToggleFavoriteCommand}"
+                                            ToolTip.Tip="{DynamicResource Search_FavoriteTip}" />
+                                    </Grid>
+                                    <TextBlock
+                                        Classes="code"
+                                        Classes.expiring="{Binding IsExpiring}"
+                                        Classes.critical="{Binding IsCritical}"
+                                        Text="{Binding DisplayCode}" />
+                                </StackPanel>
+
+                                <Grid Grid.Column="2" Margin="0,0,14,0" Width="40" Height="40" VerticalAlignment="Center"
+                                      ToolTip.Tip="{DynamicResource Home_CountdownTip}">
+                                    <Arc
+                                        Classes="countdown"
+                                        Classes.expiring="{Binding IsExpiring}"
+                                        Classes.critical="{Binding IsCritical}"
+                                        SweepAngle="{Binding SweepAngle}"
+                                        Width="38" Height="38" />
+                                    <TextBlock
+                                        Text="{Binding SecondsRemaining}"
+                                        FontSize="12"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center" />
+                                </Grid>
+                                <Button
+                                    Grid.Column="3"
+                                    Background="Transparent"
+                                    Padding="6"
+                                    Margin="10,0,0,0"
+                                    VerticalAlignment="Center"
+                                    IsVisible="{Binding PrivacyEnabled}"
+                                    Command="{Binding ToggleRevealCommand}">
+                                    <Panel>
+                                        <PathIcon
+                                            Width="18" Height="18"
+                                            Data="{DynamicResource EyeIcon}"
+                                            IsVisible="{Binding !IsRevealed}"
+                                            ToolTip.Tip="{DynamicResource Privacy_Show}" />
+                                        <PathIcon
+                                            Width="18" Height="18"
+                                            Data="{DynamicResource EyeOffIcon}"
+                                            IsVisible="{Binding IsRevealed}"
+                                            ToolTip.Tip="{DynamicResource Privacy_Hide}" />
+                                    </Panel>
+                                </Button>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
 </UserControl>

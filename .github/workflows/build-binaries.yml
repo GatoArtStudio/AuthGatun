@@ -1,0 +1,107 @@
+name: Build binaries
+
+on:
+  workflow_call:
+    inputs:
+      asset-label:
+        description: "Label inserted in the zip names, e.g. 'dev' gives AuthGatun-dev-linux-x64.zip. Empty gives AuthGatun-linux-x64.zip."
+        type: string
+        required: false
+        default: ""
+      version:
+        description: "Optional version passed as -p:Version and -p:InformationalVersion."
+        type: string
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  build-linux:
+    name: Build for Linux
+    runs-on: ubuntu-latest
+    env:
+      ZIP_NAME: ${{ inputs.asset-label != '' && format('AuthGatun-{0}-linux-x64.zip', inputs.asset-label) || 'AuthGatun-linux-x64.zip' }}
+      BUILD_VERSION: ${{ inputs.version }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore AuthGatun.sln
+
+      - name: Publish (Linux AOT)
+        run: |
+          version_args=()
+          if [ -n "$BUILD_VERSION" ]; then
+            version_args=("-p:Version=$BUILD_VERSION" "-p:InformationalVersion=$BUILD_VERSION")
+          fi
+          dotnet publish AuthGatun/AuthGatun.csproj \
+            -c Release \
+            -r linux-x64 \
+            -p:PublishAot=true \
+            --self-contained true \
+            "${version_args[@]}" \
+            -o out/linux
+
+      - name: Zip Linux build (excluding .dbg)
+        run: |
+          cd out/linux
+          zip -r "$GITHUB_WORKSPACE/$ZIP_NAME" . -x "*.dbg"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-build
+          path: ${{ env.ZIP_NAME }}
+          if-no-files-found: error
+
+  build-windows:
+    name: Build for Windows
+    runs-on: windows-latest
+    env:
+      ZIP_NAME: ${{ inputs.asset-label != '' && format('AuthGatun-{0}-win-x64.zip', inputs.asset-label) || 'AuthGatun-win-x64.zip' }}
+      BUILD_VERSION: ${{ inputs.version }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore AuthGatun.sln
+
+      - name: Publish (Windows AOT)
+        shell: pwsh
+        run: |
+          $versionArgs = @()
+          if ($env:BUILD_VERSION) {
+            $versionArgs = @("-p:Version=$($env:BUILD_VERSION)", "-p:InformationalVersion=$($env:BUILD_VERSION)")
+          }
+          dotnet publish AuthGatun/AuthGatun.csproj `
+            -c Release `
+            -r win-x64 `
+            -p:PublishAot=true `
+            --self-contained true `
+            @versionArgs `
+            -o out/windows
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Zip Windows build (excluding .pdb)
+        shell: pwsh
+        run: |
+          Get-ChildItem -Path out/windows -Exclude *.pdb | Compress-Archive -DestinationPath $env:ZIP_NAME
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: ${{ env.ZIP_NAME }}
+          if-no-files-found: error

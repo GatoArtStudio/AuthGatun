@@ -2,8 +2,133 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:controls="clr-namespace:AuthGatun.Controls"
+             xmlns:vm="clr-namespace:AuthGatun.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="AuthGatun.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel"
              x:CompileBindings="True">
-    <TextBlock Text="View de Settings" HorizontalAlignment="Center" VerticalAlignment="Center"></TextBlock>
+    <ScrollViewer>
+        <StackPanel Margin="20,36,20,20" Spacing="10">
+            <TextBlock Classes="section" Text="{DynamicResource Settings_Background}" />
+            <ToggleSwitch
+                IsChecked="{Binding RunInBackground, Mode=TwoWay}"
+                OnContent="{DynamicResource Settings_BackgroundOn}"
+                OffContent="{DynamicResource Settings_BackgroundOff}" />
+            <TextBlock
+                IsVisible="{Binding ShowLinuxTrayNote}"
+                TextWrapping="Wrap"
+                Opacity="0.7"
+                Text="{DynamicResource Settings_LinuxTrayNote}" />
+
+            <TextBlock Classes="section" Text="{DynamicResource Settings_Privacy}" />
+            <ToggleSwitch
+                IsEnabled="{Binding IsScreenCaptureExclusionSupported}"
+                IsChecked="{Binding HideFromScreenCapture, Mode=TwoWay}"
+                OnContent="{DynamicResource Settings_PrivacyOn}"
+                OffContent="{DynamicResource Settings_PrivacyOff}" />
+            <TextBlock
+                IsVisible="{Binding ShowScreenCaptureUnsupportedNote}"
+                Classes="muted"
+                Text="{DynamicResource Settings_PrivacyUnsupported}" />
+
+            <TextBlock Classes="section" Text="{DynamicResource Settings_PrivacyModeTitle}" />
+            <ToggleSwitch
+                IsChecked="{Binding PrivacyMode, Mode=TwoWay}"
+                OnContent="{DynamicResource Settings_PrivacyModeOn}"
+                OffContent="{DynamicResource Settings_PrivacyModeOff}" />
+
+            <TextBlock Classes="section" Text="{DynamicResource Settings_Appearance}" />
+            <ComboBox
+                ItemsSource="{Binding ThemeOptions}"
+                SelectedItem="{Binding SelectedTheme, Mode=TwoWay}"
+                HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ThemeOption">
+                        <TextBlock Text="{Binding Label}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <TextBlock Classes="section" Text="{DynamicResource Settings_Language}" />
+            <ComboBox
+                ItemsSource="{Binding LanguageOptions}"
+                SelectedItem="{Binding SelectedLanguage, Mode=TwoWay}"
+                HorizontalAlignment="Stretch" />
+
+            <TextBlock Classes="section" Text="{DynamicResource Settings_AutoLock}" />
+            <ComboBox
+                ItemsSource="{Binding AutoLockOptions}"
+                SelectedItem="{Binding SelectedAutoLock, Mode=TwoWay}"
+                HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:AutoLockOption">
+                        <TextBlock Text="{Binding Label}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <TextBlock Classes="section" Text="{DynamicResource Settings_ChangePassword}" />
+            <controls:PasswordTextBox
+                Text="{Binding CurrentPassword, Mode=TwoWay}"
+                Watermark="{DynamicResource Settings_CurrentPassword}"
+                Classes="default" />
+            <controls:PasswordTextBox
+                Text="{Binding NewPassword, Mode=TwoWay}"
+                Watermark="{DynamicResource Settings_NewPassword}"
+                Classes="default" />
+            <controls:PasswordTextBox
+                Text="{Binding RepeatPassword, Mode=TwoWay}"
+                Watermark="{DynamicResource Settings_RepeatPassword}"
+                Classes="default" />
+            <Button
+                Content="{DynamicResource Settings_ChangePasswordButton}"
+                HorizontalContentAlignment="Center"
+                HorizontalAlignment="Stretch"
+                Classes="default"
+                Command="{Binding ChangePasswordCommand}" />
+
+            <TextBlock Classes="section" Text="{DynamicResource Settings_BackupTitle}" />
+            <TextBlock
+                TextWrapping="Wrap"
+                Text="{DynamicResource Settings_BackupHint}" />
+            <controls:PasswordTextBox
+                Text="{Binding ExportPassword, Mode=TwoWay}"
+                Watermark="{DynamicResource Settings_ExportPasswordPlaceholder}"
+                Classes="default" />
+            <Button
+                Content="{DynamicResource Settings_Export}"
+                HorizontalContentAlignment="Center"
+                HorizontalAlignment="Stretch"
+                Classes="default"
+                Command="{Binding ExportKeysCommand}" />
+            <controls:PasswordTextBox
+                Text="{Binding ImportPassword, Mode=TwoWay}"
+                Watermark="{DynamicResource Settings_ImportPasswordPlaceholder}"
+                Classes="default" />
+            <Button
+                Content="{DynamicResource Settings_Import}"
+                HorizontalContentAlignment="Center"
+                HorizontalAlignment="Stretch"
+                Classes="default"
+                Command="{Binding ImportKeysCommand}" />
+
+            <TextBlock Classes="section" Text="{DynamicResource Settings_RecoveryTitle}" />
+            <TextBlock
+                TextWrapping="Wrap"
+                Text="{DynamicResource Settings_RecoveryHint}" />
+            <Button
+                Content="{DynamicResource Settings_GenerateRecovery}"
+                HorizontalContentAlignment="Center"
+                HorizontalAlignment="Stretch"
+                Classes="default"
+                Command="{Binding RegenerateRecoveryCodeCommand}" />
+            <TextBox
+                Text="{Binding RecoveryCode, Mode=OneWay}"
+                IsReadOnly="True"
+                TextWrapping="Wrap"
+                FontFamily="monospace"
+                Classes="default" />
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>

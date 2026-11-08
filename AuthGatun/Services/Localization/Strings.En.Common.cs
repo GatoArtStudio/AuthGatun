@@ -1,0 +1,55 @@
+using System.Collections.Generic;
+
+namespace AuthGatun.Services.Localization;
+
+public static partial class StringsEnglish
+{
+    private static Dictionary<string, string> CommonStrings() => new()
+    {
+            ["Dock_Home"] = "Home",
+            ["Dock_Keys"] = "Keys",
+            ["Dock_Settings"] = "Settings",
+            ["Dock_Logout"] = "Logout",
+            ["Login_WindowTitle"] = "AuthGatun - Sign in",
+            ["Login_Username"] = "Username",
+            ["Login_Password"] = "Password",
+            ["Login_RecoveryCode"] = "Recovery code",
+            ["Login_NewPassword"] = "New password",
+            ["Login_ResetPassword"] = "Reset password",
+            ["Login_SignIn"] = "Sign in",
+            ["Login_Forgot"] = "Forgot your password?",
+            ["Login_Register"] = "Sign up",
+            ["Login_UserInvalid"] = "The username cannot be empty or contain spaces",
+            ["Login_PasswordInvalid"] = "The password cannot be empty or contain spaces",
+            ["Login_WrongCredentials"] = "Wrong username or password",
+            ["Login_RecoveryMissing"] = "Enter the username and the recovery code",
+            ["Login_NewPasswordInvalid"] = "The new password must have at least 8 characters and no spaces",
+            ["Login_RecoveryWrong"] = "Wrong username or recovery code",
+            ["Login_Throttled"] = "Too many attempts, wait {0} seconds",
+            ["Register_WindowTitle"] = "AuthGatun - Sign up",
+            ["Register_Heading"] = "Sign up",
+            ["Register_Username"] = "Username",
+            ["Register_Password"] = "Password",
+            ["Register_RepeatPassword"] = "Repeat the password",
+            ["Register_Submit"] = "Create account",
+            ["Register_GoToLogin"] = "Go to sign in",
+            ["Register_RecoveryHeading"] = "Recovery code",
+            ["Register_RecoveryHint"] = "Keep it somewhere safe. It is the only way to recover your keys if you forget your password and it will not be shown again.",
+            ["Register_Continue"] = "I have saved the code, continue",
+            ["Register_UserInvalid"] = "The username cannot be empty or contain spaces.",
+            ["Register_PasswordInvalid"] = "The password cannot be empty or contain spaces.",
+            ["Register_RepeatInvalid"] = "The repeated password cannot be empty or contain spaces.",
+            ["Register_Mismatch"] = "The passwords do not match.",
+            ["Register_TooShort"] = "The password must have at least 8 characters.",
+            ["Tray_Open"] = "Open",
+            ["Tray_Lock"] = "Sign out",
+            ["Tray_Quit"] = "Quit",
+            ["Presence_Default"] = "TOTP authentication app, developed by GatoArtStudio.",
+            ["Presence_Login"] = "Let's sign in!",
+            ["Presence_Register"] = "Registering a new user.",
+            ["Presence_Home"] = "Looking at the TOTP keys.",
+            ["Presence_Keys"] = "Let's add a new TOTP key!",
+            ["Presence_ProjectButton"] = "Visit our project",
+            ["Presence_DeveloperButton"] = "Developer",
+    };
+}

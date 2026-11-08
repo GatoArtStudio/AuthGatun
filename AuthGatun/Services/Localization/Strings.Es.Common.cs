@@ -1,0 +1,55 @@
+using System.Collections.Generic;
+
+namespace AuthGatun.Services.Localization;
+
+public static partial class StringsSpanish
+{
+    private static Dictionary<string, string> CommonStrings() => new()
+    {
+            ["Dock_Home"] = "Inicio",
+            ["Dock_Keys"] = "Claves",
+            ["Dock_Settings"] = "Ajustes",
+            ["Dock_Logout"] = "Cerrar sesión",
+            ["Login_WindowTitle"] = "AuthGatun - Iniciar sesión",
+            ["Login_Username"] = "Usuario",
+            ["Login_Password"] = "Contraseña",
+            ["Login_RecoveryCode"] = "Código de recuperación",
+            ["Login_NewPassword"] = "Nueva contraseña",
+            ["Login_ResetPassword"] = "Restablecer contraseña",
+            ["Login_SignIn"] = "Iniciar sesión",
+            ["Login_Forgot"] = "¿Olvidaste tu contraseña?",
+            ["Login_Register"] = "Registrarse",
+            ["Login_UserInvalid"] = "El usuario no puede ser nulo o contener espacios",
+            ["Login_PasswordInvalid"] = "La contraseña no puede ser nula o contener espacios",
+            ["Login_WrongCredentials"] = "Usuario o contraseña incorrectos",
+            ["Login_RecoveryMissing"] = "Ingresa el usuario y el código de recuperación",
+            ["Login_NewPasswordInvalid"] = "La nueva contraseña debe tener al menos 8 caracteres y no contener espacios",
+            ["Login_RecoveryWrong"] = "Usuario o código de recuperación incorrecto",
+            ["Login_Throttled"] = "Demasiados intentos, espera {0} segundos",
+            ["Register_WindowTitle"] = "AuthGatun - Registro",
+            ["Register_Heading"] = "Registrarse",
+            ["Register_Username"] = "Usuario",
+            ["Register_Password"] = "Contraseña",
+            ["Register_RepeatPassword"] = "Repetir la contraseña",
+            ["Register_Submit"] = "Registrar",
+            ["Register_GoToLogin"] = "Ir a iniciar sesión",
+            ["Register_RecoveryHeading"] = "Código de recuperación",
+            ["Register_RecoveryHint"] = "Guárdalo en un lugar seguro. Es la única forma de recuperar tus claves si olvidas la contraseña y no se volverá a mostrar.",
+            ["Register_Continue"] = "He guardado el código, continuar",
+            ["Register_UserInvalid"] = "El usuario no puede ser nulo o contener espacios.",
+            ["Register_PasswordInvalid"] = "La contraseña no puede ser nula o contener espacios.",
+            ["Register_RepeatInvalid"] = "La contraseña repetida no puede ser nula o contener espacios.",
+            ["Register_Mismatch"] = "Las contraseñas no coinciden.",
+            ["Register_TooShort"] = "La contraseña debe tener al menos 8 caracteres.",
+            ["Tray_Open"] = "Abrir",
+            ["Tray_Lock"] = "Cerrar sesión",
+            ["Tray_Quit"] = "Salir",
+            ["Presence_Default"] = "Aplicación de autenticación TOTP, desarrollada por GatoArtStudio.",
+            ["Presence_Login"] = "¡Iniciemos sesión!",
+            ["Presence_Register"] = "Registrando un nuevo usuario.",
+            ["Presence_Home"] = "Observando las claves TOTP.",
+            ["Presence_Keys"] = "¡Agreguemos una nueva clave TOTP!",
+            ["Presence_ProjectButton"] = "Visita nuestro proyecto",
+            ["Presence_DeveloperButton"] = "Desarrollador",
+    };
+}

@@ -3,30 +3,35 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
-using AuthGatun.Domains.IdentityAccess.Application.Ports.In.UseCases;
-using AuthGatun.Domains.IdentityAccess.Application.UseCases;
-using AuthGatun.Domains.IdentityAccess.Domain.Aggregate;
-using AuthGatun.Domains.IdentityAccess.Infrastructure.Eventbus;
-using AuthGatun.Domains.IdentityAccess.Infrastructure.Persistence;
-using AuthGatun.Domains.IdentityAccess.Infrastructure.Services;
+using AuthGatun.Core.AvaloniaUI;
+using AuthGatun.Core.Localization;
+using AuthGatun.Domains.IdentityAccess.Application;
+using AuthGatun.Domains.IdentityAccess.Application.Ports.Inbound;
+using AuthGatun.Domains.IdentityAccess.Application.Models;
 using AuthGatun.Services;
 using AuthGatun.Views;
 using CommunityToolkit.Mvvm.Input;
 
 namespace AuthGatun.ViewModels;
 
-public class RegisterWindowViewModel(App app) : INotifyPropertyChanged
+public class RegisterWindowViewModel(
+    IViewModelFactory viewModelFactory,
+    IWindowFactory windowFactory,
+    DiscordService discordService,
+    IRegisterUseCase register,
+    IWindowService windowService,
+    UserStatusService userStatusService,
+    ILocalizer localizer
+) : ViewModelBase
 {
     public event PropertyChangedEventHandler? PropertyChanged;
-    private readonly App _app = app ?? throw new ArgumentNullException(nameof(app), "App cannot be null");
-
-    private readonly IRegisterUseCase _register = new RegisterUserCase(BusFactory.GetInstance().CreateBus(),
-        RepositoryFactory.GetInstance().CreateRepository(), new Argon2PasswordHasher());
 
     private string _username = "";
     private string _newpassword = "";
     private string _repeatpassword = "";
     private string _messagestatus = "";
+    private string _recoveryCode = "";
+    private bool _showRecoveryCode;
 
     public string Username
     {
@@ -52,6 +57,25 @@ public class RegisterWindowViewModel(App app) : INotifyPropertyChanged
         set => SetField(ref _messagestatus, value);
     }
 
+    public string RecoveryCode
+    {
+        get => _recoveryCode;
+        private set => SetField(ref _recoveryCode, value);
+    }
+
+    public bool ShowRecoveryCode
+    {
+        get => _showRecoveryCode;
+        private set
+        {
+            if (SetField(ref _showRecoveryCode, value))
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ShowForm)));
+        }
+    }
+
+    public bool ShowForm => !ShowRecoveryCode;
+
+    public ICommand ContinueCommand => new RelayCommand(OnContinue);
     public ICommand RegisterCommand => new RelayCommand(OnRegister);
     public ICommand ChangeToLoginWindowCommand => new RelayCommand(OnChangeToLoginWindow);
 
@@ -59,55 +83,71 @@ public class RegisterWindowViewModel(App app) : INotifyPropertyChanged
     {
         if (string.IsNullOrWhiteSpace(Username) || Username.Contains(' '))
         {
-            Messagestatus = "El usuario no puede ser nulo o con espacios.";
+            Messagestatus = localizer.Get("Register_UserInvalid");
             return;
         }
         
         if (string.IsNullOrWhiteSpace(Newpassword) || Newpassword.Contains(' '))
         {
-            Messagestatus = "La contraseña no puede ser nulo o con espacios.";
+            Messagestatus = localizer.Get("Register_PasswordInvalid");
             return;
         }
         
         if (string.IsNullOrWhiteSpace(Newpassword) || Repeatpassword.Contains(' '))
         {
-            Messagestatus = "La contraseña repetida no puede ser nulo o con espacios.";
+            Messagestatus = localizer.Get("Register_RepeatInvalid");
             return;
         }
 
         if (Newpassword != Repeatpassword)
         {
-            Messagestatus = "La contraseña no coincide.";
+            Messagestatus = localizer.Get("Register_Mismatch");
             return;
         }
 
         if (Newpassword.Length < 8)
         {
-            Messagestatus = "La contraseña no puede contener menos de 8 caracteres";
+            Messagestatus = localizer.Get("Register_TooShort");
             return;
         }
 
         try
         {
-            User newUser = _register.Execute(Username, Newpassword);
-            UserStatus.GetInstance().User = newUser;
-            
-            var windows = new MainWindow();
-            windows.DataContext = new MainWindowViewModel(windows);
-            _app.SetWindow(windows);
+            RegistrationResult result = register.Execute(Username, Newpassword);
+            userStatusService.User = result.User;
+            RecoveryCode = result.RecoveryCode;
+            Newpassword = "";
+            Repeatpassword = "";
+            Messagestatus = "";
+            ShowRecoveryCode = true;
         }
-        catch (Exception e)
+        catch (IdentityAccessException e)
         {
-            Messagestatus = $"Hubo un error, {e.Message}";
+            Messagestatus = localizer.Get("Error_" + e.Error);
+        }
+        catch (Exception)
+        {
+            Messagestatus = localizer.Get("Error_Unexpected");
         }
     }
+    private void OnContinue()
+    {
+        var mainViewModel = viewModelFactory.Create<MainWindowViewModel>();
+        var mainWindow = windowFactory.Create<MainWindow, MainWindowViewModel>(mainViewModel);
+        mainWindow.Show();
+
+        windowService.Close(this);
+    }
+
     private void OnChangeToLoginWindow()
     {
-        var windows = new LoginWindow();
-        windows.DataContext = new LoginWindowViewModel(_app);
-        _app.SetWindow(windows);
+        var loginViewModel = viewModelFactory.Create<LoginWindowViewModel>();
+        var loginWindow = windowFactory.Create<LoginWindow, LoginWindowViewModel>(loginViewModel);
+        loginWindow.Show();
         
-        Discord.GetInstance().UpdatePresence("AuthGatun", "Iniciemos sesión!.");
+        windowService.Close(this);
+        
+        discordService.UpdatePresence("AuthGatun", localizer.Get("Presence_Login"));
     }
     
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = "")

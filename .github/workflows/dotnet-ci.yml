@@ -1,15 +1,12 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-
 name: .NET
 
 on:
   push:
     branches:
+      - "main"
       - "release"
       - "develop"
       - "hotfix"
-      - "feature/**"
   pull_request:
     branches:
       - "main"
@@ -18,20 +15,63 @@ on:
       - "hotfix"
       - "feature/**"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   build:
-
-    runs-on: ubuntu-latest
+    name: Build and test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.0.x
-    - name: Restore dependencies
-      run: dotnet restore AuthGatun.sln
-    - name: Build solution
-      run: dotnet build AuthGatun.sln --configuration Release --no-restore
-    - name: Run tests
-      run: dotnet test AuthGatun.Tests/AuthGatun.Tests.csproj --no-build --configuration Release
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore AuthGatun.sln
+
+      - name: Build solution
+        run: dotnet build AuthGatun.sln --configuration Release --no-restore
+
+      - name: Run tests
+        run: dotnet test AuthGatun.Tests/AuthGatun.Tests.csproj --no-build --configuration Release
+
+  aot-publish-check:
+    name: Native AOT publish check (${{ matrix.rid }})
+    if: github.event_name == 'pull_request' && contains(fromJSON('["develop","main","release"]'), github.base_ref)
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+          - os: windows-latest
+            rid: win-x64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore AuthGatun.sln
+
+      - name: Publish (Native AOT)
+        run: dotnet publish AuthGatun/AuthGatun.csproj -c Release -r ${{ matrix.rid }} -p:PublishAot=true --self-contained true -o out/aot

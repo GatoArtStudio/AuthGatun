@@ -1,0 +1,84 @@
+using System;
+using System.IO;
+using AuthGatun.Domains.Settings;
+using AuthGatun.Domains.Settings.Adapters.Outbound.JsonFile;
+using AuthGatun.Domains.Settings.Application.Ports.Inbound;
+using AuthGatun.Domains.Settings.Application.Ports.Outbound;
+using AuthGatun.Domains.Settings.Domain;
+using Microsoft.Extensions.DependencyInjection;
+using Xunit;
+
+namespace AuthGatun.Tests.Domains.Settings.Adapters;
+
+public class JsonFileSettingsRepositoryTest : IDisposable
+{
+    private readonly string _appFolder = Path.Combine(Path.GetTempPath(), "authgatun-tests-" + Guid.NewGuid());
+    private string SettingsPath => Path.Combine(_appFolder, "AuthGatun", "settings.json");
+
+    public void Dispose()
+    {
+        if (Directory.Exists(_appFolder))
+            Directory.Delete(_appFolder, true);
+    }
+
+    [Fact]
+    public void LoadReturnsNullWhenTheFileDoesNotExist()
+    {
+        Assert.Null(new JsonFileSettingsRepository(SettingsPath).Load());
+    }
+
+    [Fact]
+    public void SavedSettingsAreLoadedBack()
+    {
+        var repository = new JsonFileSettingsRepository(SettingsPath);
+
+        repository.Save(new AppSettings(true, 30, false, "es"));
+
+        Assert.Equal(new AppSettings(true, 30, false, "es"), repository.Load());
+    }
+
+    [Fact]
+    public void PrivacyModeAndThemeAreSavedAndLoadedBack()
+    {
+        var repository = new JsonFileSettingsRepository(SettingsPath);
+
+        repository.Save(new AppSettings(false, 5, true, "en", privacyMode: true, theme: "system"));
+
+        Assert.Equal(new AppSettings(false, 5, true, "en", true, "system"), repository.Load());
+    }
+
+    [Fact]
+    public void SettingsSavedBeforeCaptureVisibilityExistedDefaultToHidden()
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(SettingsPath)!);
+        File.WriteAllText(SettingsPath, "{\"RunInBackground\":true,\"AutoLockMinutes\":15}");
+
+        var settings = new JsonFileSettingsRepository(SettingsPath).Load();
+
+        Assert.Equal(new AppSettings(true, 15, true, null), settings);
+    }
+
+    [Theory]
+    [InlineData("not json at all")]
+    [InlineData("{\"RunInBackground\":true,\"AutoLockMinutes\":7}")]
+    [InlineData("{\"RunInBackground\":true,\"AutoLockMinutes\":5,\"Language\":\"fr\"}")]
+    public void LoadReturnsNullWhenTheFileIsCorruptOrInvalid(string content)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(SettingsPath)!);
+        File.WriteAllText(SettingsPath, content);
+
+        Assert.Null(new JsonFileSettingsRepository(SettingsPath).Load());
+    }
+
+    [Fact]
+    public void EveryUseCaseCanBeResolved()
+    {
+        using var provider = new ServiceCollection()
+            .AddSettingsDomain(_appFolder)
+            .BuildServiceProvider(new ServiceProviderOptions { ValidateOnBuild = true });
+
+        Assert.NotNull(provider.GetRequiredService<IGetSettingsUseCase>());
+        Assert.NotNull(provider.GetRequiredService<IUpdateSettingsUseCase>());
+        Assert.NotNull(provider.GetRequiredService<ISystemLanguageProvider>());
+    }
+}

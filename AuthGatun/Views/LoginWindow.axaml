@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:controls="clr-namespace:AuthGatun.Controls"
         xmlns:vm="clr-namespace:AuthGatun.ViewModels"
         mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="600"
         Width="500"
@@ -11,11 +12,10 @@
         x:Class="AuthGatun.Views.LoginWindow"
         x:DataType="vm:LoginWindowViewModel"
         Icon="/Assets/logo.ico"
-        Title="LoginWindow"
+        Title="{DynamicResource Login_WindowTitle}"
         TransparencyLevelHint="AcrylicBlur, Blur"
         ExtendClientAreaToDecorationsHint="True"
-        Background="#7F000000"
-        RequestedThemeVariant="Dark"
+        Background="{DynamicResource WindowBackgroundBrush}"
         x:CompileBindings="True">
     
     <Window.Styles>
@@ -26,7 +26,7 @@
         
         <Style Selector="Border.LoginCard">
             <Setter Property="MinWidth" Value="350"></Setter>
-            <Setter Property="Background" Value="#10FFFFFF"></Setter>
+            <Setter Property="Background" Value="{DynamicResource InputBrush}"></Setter>
             <Setter Property="CornerRadius" Value="10"></Setter>
             <Setter Property="Padding" Value="30"></Setter>
             <Setter Property="BorderThickness" Value="1"></Setter>
@@ -46,23 +46,48 @@
             </TextBlock>
             <TextBox
                 Text="{Binding Username, Mode=TwoWay}"
-                Watermark="Usuario"
+                Watermark="{DynamicResource Login_Username}"
+                Classes="default"/>
+            <controls:PasswordTextBox
+                IsVisible="{Binding IsLoginMode}"
+                Text="{Binding Password, Mode=TwoWay}"
+                Watermark="{DynamicResource Login_Password}"
                 Classes="default"/>
             <TextBox
-                Text="{Binding Password, Mode=TwoWay}"
-                Watermark="Contraseña"
-                PasswordChar="*"
+                IsVisible="{Binding IsRecoveryMode}"
+                Text="{Binding RecoveryCode, Mode=TwoWay}"
+                Watermark="{DynamicResource Login_RecoveryCode}"
+                Classes="default"/>
+            <controls:PasswordTextBox
+                IsVisible="{Binding IsRecoveryMode}"
+                Text="{Binding NewPassword, Mode=TwoWay}"
+                Watermark="{DynamicResource Login_NewPassword}"
                 Classes="default"/>
             <Button
-                Content="Iniciar Sesión"
+                IsVisible="{Binding IsRecoveryMode}"
+                Content="{DynamicResource Login_ResetPassword}"
+                HorizontalContentAlignment="Center"
+                HorizontalAlignment="Stretch"
+                Classes="default primary"
+                Margin="0,20,0,0"
+                Command="{Binding RecoverAccessCommand}" />
+            <Button
+                IsVisible="{Binding IsLoginMode}"
+                Content="{DynamicResource Login_SignIn}"
                 HorizontalContentAlignment="Center"
                 HorizontalAlignment="Stretch"
                 IsDefault="True"
-                Classes="default"
+                Classes="default primary"
                 Margin="0,20,0,0"
                 Command="{Binding LoginVerificationCommand}" />
             <Button
-                Content="Registrarse"
+                Content="{DynamicResource Login_Forgot}"
+                HorizontalContentAlignment="Center"
+                HorizontalAlignment="Stretch"
+                Classes="default"
+                Command="{Binding ToggleRecoveryModeCommand}" />
+            <Button
+                Content="{DynamicResource Login_Register}"
                 HorizontalContentAlignment="Center"
                 HorizontalAlignment="Stretch"
                 Classes="default"

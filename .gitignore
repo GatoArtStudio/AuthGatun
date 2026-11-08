@@ -404,3 +404,9 @@ FodyWeavers.xsd
 # Personalizados
 authgatun.db
 .idea/
+
+# Local AI files
+AGENTS.md
+CLAUDE.md
+.claude/
+graphify-out/
