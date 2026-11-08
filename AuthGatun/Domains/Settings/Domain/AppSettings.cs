@@ -8,18 +8,32 @@ public sealed record AppSettings
 {
     public static readonly IReadOnlyList<int> AllowedAutoLockMinutes = [0, 1, 5, 15, 30];
 
-    public static AppSettings Default => new(false, 5, true);
+    public const string DefaultLanguage = "en";
+
+    public static readonly IReadOnlyList<string> SupportedLanguages = ["en", "es"];
+
+    public static AppSettings Default => new(false, 5, true, null);
+
+    public static bool IsSupportedLanguage(string? language) =>
+        language is not null && SupportedLanguages.Contains(language);
 
     public bool RunInBackground { get; }
     public int AutoLockMinutes { get; }
     public bool HideFromScreenCapture { get; }
 
-    public AppSettings(bool runInBackground, int autoLockMinutes, bool hideFromScreenCapture)
+    // Null means the user never chose a language and it still has to be detected.
+    public string? Language { get; }
+
+    public AppSettings(bool runInBackground, int autoLockMinutes, bool hideFromScreenCapture, string? language)
     {
         if (!AllowedAutoLockMinutes.Contains(autoLockMinutes))
             throw new ArgumentException("The auto lock time is not one of the allowed values.", nameof(autoLockMinutes));
 
+        if (language is not null && !IsSupportedLanguage(language))
+            throw new ArgumentException("The language is not supported.", nameof(language));
+
         RunInBackground = runInBackground;
+        Language = language;
         AutoLockMinutes = autoLockMinutes;
         HideFromScreenCapture = hideFromScreenCapture;
     }
