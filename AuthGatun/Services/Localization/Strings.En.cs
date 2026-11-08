@@ -129,5 +129,17 @@ public static class StringsEnglish
         ["Error_WrongBackupPassword"] = "Wrong backup password or the file is not a valid backup",
         ["Error_InvalidRecoveryData"] = "The username and the recovery code cannot be empty",
         ["Error_SaveFailed"] = "The data could not be saved",
+        ["Error_QrNotFound"] = "No QR code was found in the image",
+        ["Error_QrNotOtpAuth"] = "The QR code is not a two-step verification key",
+        ["Error_QrInvalidSecret"] = "The QR code does not contain a valid secret key",
+        ["Error_QrUnsupportedParameters"] = "This key uses settings that are not supported yet (only 6 digits, 30 seconds and SHA1)",
+        ["Error_ImageUnreadable"] = "The image could not be read",
+        ["Keys_ScanFromClipboard"] = "Scan QR from clipboard",
+        ["Keys_ScanFromFile"] = "Scan QR from an image file",
+        ["Keys_DropHint"] = "or drop an image with the QR code here",
+        ["Keys_ScanSuccess"] = "QR read. Review the name and save the key.",
+        ["Keys_NoClipboardContent"] = "The clipboard has no image or otpauth link to read",
+        ["Keys_FileTooLarge"] = "The image is too large (10 MB maximum)",
+        ["Keys_PickerTitle"] = "Choose an image with a QR code",
     };
 }
