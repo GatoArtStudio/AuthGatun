@@ -38,6 +38,7 @@ public class SettingsViewModel : ViewModelBase
     private string _recoveryCode = "";
     private AutoLockOption _selectedAutoLock;
     private bool _runInBackground;
+    private bool _hideFromScreenCapture;
     private string _exportPassword = "";
     private string _importPassword = "";
 
@@ -80,6 +81,23 @@ public class SettingsViewModel : ViewModelBase
         }
     }
 
+    public bool IsScreenCaptureExclusionSupported { get; }
+
+    public bool ShowScreenCaptureUnsupportedNote => !IsScreenCaptureExclusionSupported;
+
+    public bool HideFromScreenCapture
+    {
+        get => _hideFromScreenCapture;
+        set
+        {
+            if (!IsScreenCaptureExclusionSupported)
+                value = false;
+
+            this.RaiseAndSetIfChanged(ref _hideFromScreenCapture, value);
+            OnHideFromScreenCaptureChanged(value);
+        }
+    }
+
     public bool ShowLinuxTrayNote { get; } = OperatingSystem.IsLinux();
 
     public AutoLockOption SelectedAutoLock
@@ -117,11 +135,14 @@ public class SettingsViewModel : ViewModelBase
         IWindowService windowService,
         AppSettingsState settingsState,
         UserStatusService userStatusService,
-        NotifyManagerService notifyManagerService
+        NotifyManagerService notifyManagerService,
+        ScreenCaptureService screenCapture
     )
     {
         _settingsState = settingsState;
         _runInBackground = settingsState.Current.RunInBackground;
+        IsScreenCaptureExclusionSupported = screenCapture.IsSupported;
+        _hideFromScreenCapture = screenCapture.IsSupported && settingsState.Current.HideFromScreenCapture;
         _selectedAutoLock = AutoLockOptions.First(option => option.Minutes == settingsState.Current.AutoLockMinutes);
         _changePassword = changePassword;
         _regenerateRecoveryCode = regenerateRecoveryCode;
@@ -273,6 +294,15 @@ public class SettingsViewModel : ViewModelBase
             return;
 
         _settingsState.Update(_settingsState.Current with { RunInBackground = runInBackground });
+    }
+
+    private void OnHideFromScreenCaptureChanged(bool hide)
+    {
+        if (!IsScreenCaptureExclusionSupported || hide == _settingsState.Current.HideFromScreenCapture)
+            return;
+
+        _settingsState.Update(_settingsState.Current with { HideFromScreenCapture = hide });
+        Notify(hide ? "La ventana ahora es invisible en capturas y grabaciones" : "La ventana ahora es visible en capturas y grabaciones", NotificationType.Success);
     }
 
     private void OnAutoLockChanged(AutoLockOption option)

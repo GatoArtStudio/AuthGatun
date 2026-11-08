@@ -17,7 +17,7 @@ public partial class JsonFileSettingsRepository(string filePath) : ISettingsRepo
         try
         {
             var stored = JsonSerializer.Deserialize(File.ReadAllBytes(filePath), SettingsJsonContext.Default.StoredSettings);
-            return stored is null ? null : new AppSettings(stored.RunInBackground, stored.AutoLockMinutes);
+            return stored is null ? null : new AppSettings(stored.RunInBackground, stored.AutoLockMinutes, stored.HideFromScreenCapture);
         }
         catch (Exception e) when (e is JsonException or ArgumentException or IOException)
         {
@@ -30,12 +30,12 @@ public partial class JsonFileSettingsRepository(string filePath) : ISettingsRepo
         Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
 
         var temporaryPath = filePath + ".tmp";
-        var stored = new StoredSettings(settings.RunInBackground, settings.AutoLockMinutes);
+        var stored = new StoredSettings(settings.RunInBackground, settings.AutoLockMinutes, settings.HideFromScreenCapture);
         File.WriteAllBytes(temporaryPath, JsonSerializer.SerializeToUtf8Bytes(stored, SettingsJsonContext.Default.StoredSettings));
         File.Move(temporaryPath, filePath, true);
     }
 
-    internal sealed record StoredSettings(bool RunInBackground, int AutoLockMinutes);
+    internal sealed record StoredSettings(bool RunInBackground, int AutoLockMinutes, bool HideFromScreenCapture = true);
 
     [JsonSourceGenerationOptions(WriteIndented = true)]
     [JsonSerializable(typeof(StoredSettings))]

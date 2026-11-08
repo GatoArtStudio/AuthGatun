@@ -56,6 +56,8 @@ public partial class App : Application
             services.AddSingleton<IPlatformService, PlatformFallbackService>();
         }
         
+        services.AddSingleton<ScreenCaptureService>();
+
         // View models, They implement ViewModelBase
         services.AddTransient<LoginWindowViewModel>();
         services.AddTransient<MainWindowViewModel>();

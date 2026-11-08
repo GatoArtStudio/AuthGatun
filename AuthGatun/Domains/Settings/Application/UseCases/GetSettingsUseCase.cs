@@ -10,6 +10,6 @@ public class GetSettingsUseCase(ISettingsRepository repository) : IGetSettingsUs
     public AppSettingsModel Execute()
     {
         var settings = repository.Load() ?? AppSettings.Default;
-        return new AppSettingsModel(settings.RunInBackground, settings.AutoLockMinutes);
+        return new AppSettingsModel(settings.RunInBackground, settings.AutoLockMinutes, settings.HideFromScreenCapture);
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using AuthGatun.ViewModels;
 using Avalonia.Controls;
 using Avalonia.Input.Platform;
@@ -12,6 +13,7 @@ public interface IWindowService
     void Close(ViewModelBase viewModel);
     bool IsForceClosing(Window window);
     Window? CurrentWindow();
+    IReadOnlyList<Window> OpenWindows();
     IClipboard? GetClipboard();
     IStorageProvider? GetStorageProvider();
 }

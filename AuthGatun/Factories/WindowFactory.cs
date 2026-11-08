@@ -1,6 +1,6 @@
 using System;
 using AuthGatun.Core.AvaloniaUI;
-using AuthGatun.Core.Platform;
+using AuthGatun.Services;
 using AuthGatun.ViewModels;
 using Avalonia.Controls;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,7 +10,7 @@ namespace AuthGatun.Factories;
 public class WindowFactory(
     IServiceProvider serviceProvider,
     IWindowService windowService,
-    IPlatformService platformService,
+    ScreenCaptureService screenCapture,
     IBackgroundModeService backgroundMode
 ) : IWindowFactory
 {
@@ -22,8 +22,7 @@ public class WindowFactory(
         windowService.Register(viewModel, window);
         window.Closed += (_, _) => windowService.Unregister(viewModel);
         
-        // Hide the current window
-        platformService.HiddenCurrentWindowByExcludeFromCapture(window);
+        screenCapture.Apply(window);
         backgroundMode.Attach(window);
         
         return window;

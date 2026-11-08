@@ -31,9 +31,20 @@ public class JsonFileSettingsRepositoryTest : IDisposable
     {
         var repository = new JsonFileSettingsRepository(SettingsPath);
 
-        repository.Save(new AppSettings(true, 30));
+        repository.Save(new AppSettings(true, 30, false));
 
-        Assert.Equal(new AppSettings(true, 30), repository.Load());
+        Assert.Equal(new AppSettings(true, 30, false), repository.Load());
+    }
+
+    [Fact]
+    public void SettingsSavedBeforeCaptureVisibilityExistedDefaultToHidden()
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(SettingsPath)!);
+        File.WriteAllText(SettingsPath, "{\"RunInBackground\":true,\"AutoLockMinutes\":15}");
+
+        var settings = new JsonFileSettingsRepository(SettingsPath).Load();
+
+        Assert.Equal(new AppSettings(true, 15, true), settings);
     }
 
     [Theory]
