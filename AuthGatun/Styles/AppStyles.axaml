@@ -2,32 +2,65 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Styles.Resources>
-        <Color x:Key="AccentColor">#7C8CFF</Color>
-        <Color x:Key="WarningColor">#FFB84D</Color>
-        <Color x:Key="DangerColor">#FF5C6C</Color>
-        <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
-        <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}" />
-        <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource DangerColor}" />
-        <SolidColorBrush x:Key="CardBrush" Color="#14FFFFFF" />
-        <SolidColorBrush x:Key="CardHoverBrush" Color="#1FFFFFFF" />
-        <SolidColorBrush x:Key="CardBorderBrush" Color="#1AFFFFFF" />
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Dark">
+                    <Color x:Key="AccentColor">#7C8CFF</Color>
+                    <Color x:Key="WarningColor">#FFB84D</Color>
+                    <Color x:Key="DangerColor">#FF5C6C</Color>
+                    <SolidColorBrush x:Key="AccentBrush" Color="#7C8CFF" />
+                    <SolidColorBrush x:Key="AccentHoverBrush" Color="#97A4FF" />
+                    <SolidColorBrush x:Key="OnAccentBrush" Color="#10131F" />
+                    <SolidColorBrush x:Key="WarningBrush" Color="#FFB84D" />
+                    <SolidColorBrush x:Key="DangerBrush" Color="#FF5C6C" />
+                    <SolidColorBrush x:Key="CardBrush" Color="#14FFFFFF" />
+                    <SolidColorBrush x:Key="CardHoverBrush" Color="#1FFFFFFF" />
+                    <SolidColorBrush x:Key="CardBorderBrush" Color="#1AFFFFFF" />
+                    <SolidColorBrush x:Key="InputBrush" Color="#10FFFFFF" />
+                    <SolidColorBrush x:Key="ButtonBrush" Color="#14FFFFFF" />
+                    <SolidColorBrush x:Key="ButtonHoverBrush" Color="#26FFFFFF" />
+                    <SolidColorBrush x:Key="AvatarBrush" Color="#337C8CFF" />
+                    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#7F000000" />
+                    <SolidColorBrush x:Key="DockBackgroundBrush" Color="#14000000" />
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Light">
+                    <Color x:Key="AccentColor">#4350D0</Color>
+                    <Color x:Key="WarningColor">#9A5B00</Color>
+                    <Color x:Key="DangerColor">#C21F31</Color>
+                    <SolidColorBrush x:Key="AccentBrush" Color="#4350D0" />
+                    <SolidColorBrush x:Key="AccentHoverBrush" Color="#3441B8" />
+                    <SolidColorBrush x:Key="OnAccentBrush" Color="#FFFFFF" />
+                    <SolidColorBrush x:Key="WarningBrush" Color="#9A5B00" />
+                    <SolidColorBrush x:Key="DangerBrush" Color="#C21F31" />
+                    <SolidColorBrush x:Key="CardBrush" Color="#0F000000" />
+                    <SolidColorBrush x:Key="CardHoverBrush" Color="#1A000000" />
+                    <SolidColorBrush x:Key="CardBorderBrush" Color="#26000000" />
+                    <SolidColorBrush x:Key="InputBrush" Color="#0D000000" />
+                    <SolidColorBrush x:Key="ButtonBrush" Color="#0F000000" />
+                    <SolidColorBrush x:Key="ButtonHoverBrush" Color="#1F000000" />
+                    <SolidColorBrush x:Key="AvatarBrush" Color="#334350D0" />
+                    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#D9FFFFFF" />
+                    <SolidColorBrush x:Key="DockBackgroundBrush" Color="#0F000000" />
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
     </Styles.Resources>
 
     <Style Selector="TextBox.default">
         <Setter Property="CornerRadius" Value="8" />
         <Setter Property="Padding" Value="12,10" />
-        <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
-        <Setter Property="Background" Value="#10FFFFFF" />
+        <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}" />
+        <Setter Property="Background" Value="{DynamicResource InputBrush}" />
     </Style>
     <Style Selector="TextBox.default:focus /template/ Border#PART_BorderElement">
-        <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
         <Setter Property="BorderThickness" Value="1.5" />
     </Style>
 
     <Style Selector="Button.default">
         <Setter Property="CornerRadius" Value="8" />
         <Setter Property="Padding" Value="12,10" />
-        <Setter Property="Background" Value="#14FFFFFF" />
+        <Setter Property="Background" Value="{DynamicResource ButtonBrush}" />
         <Setter Property="Transitions">
             <Transitions>
                 <BrushTransition Property="Background" Duration="0:0:0.15" />
@@ -35,15 +68,15 @@
         </Setter>
     </Style>
     <Style Selector="Button.default:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="#26FFFFFF" />
+        <Setter Property="Background" Value="{DynamicResource ButtonHoverBrush}" />
     </Style>
     <Style Selector="Button.primary /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="{StaticResource AccentBrush}" />
-        <Setter Property="Foreground" Value="#10131F" />
+        <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
     <Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="#97A4FF" />
+        <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
     </Style>
 
     <Style Selector="Button.dock">
@@ -55,8 +88,8 @@
     </Style>
 
     <Style Selector="Border.card">
-        <Setter Property="Background" Value="{StaticResource CardBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource CardBorderBrush}" />
+        <Setter Property="Background" Value="{DynamicResource CardBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="12" />
         <Setter Property="Padding" Value="16" />
@@ -68,20 +101,20 @@
         </Setter>
     </Style>
     <Style Selector="Border.card:pointerover">
-        <Setter Property="Background" Value="{StaticResource CardHoverBrush}" />
+        <Setter Property="Background" Value="{DynamicResource CardHoverBrush}" />
     </Style>
     <Style Selector="Border.card.expiring">
-        <Setter Property="BorderBrush" Value="{StaticResource WarningBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WarningBrush}" />
     </Style>
     <Style Selector="Border.card.critical">
-        <Setter Property="BorderBrush" Value="{StaticResource DangerBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}" />
     </Style>
 
     <Style Selector="Border.avatar">
         <Setter Property="Width" Value="40" />
         <Setter Property="Height" Value="40" />
         <Setter Property="CornerRadius" Value="20" />
-        <Setter Property="Background" Value="#337C8CFF" />
+        <Setter Property="Background" Value="{DynamicResource AvatarBrush}" />
     </Style>
 
     <Style Selector="TextBlock.code">
@@ -89,26 +122,26 @@
         <Setter Property="FontSize" Value="30" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="LetterSpacing" Value="2" />
-        <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
     </Style>
     <Style Selector="TextBlock.code.expiring">
-        <Setter Property="Foreground" Value="{StaticResource WarningBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource WarningBrush}" />
     </Style>
     <Style Selector="TextBlock.code.critical">
-        <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
     </Style>
 
     <Style Selector="Arc.countdown">
-        <Setter Property="Stroke" Value="{StaticResource AccentBrush}" />
+        <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
         <Setter Property="StrokeThickness" Value="3" />
         <Setter Property="StrokeLineCap" Value="Round" />
         <Setter Property="StartAngle" Value="-90" />
     </Style>
     <Style Selector="Arc.countdown.expiring">
-        <Setter Property="Stroke" Value="{StaticResource WarningBrush}" />
+        <Setter Property="Stroke" Value="{DynamicResource WarningBrush}" />
     </Style>
     <Style Selector="Arc.countdown.critical">
-        <Setter Property="Stroke" Value="{StaticResource DangerBrush}" />
+        <Setter Property="Stroke" Value="{DynamicResource DangerBrush}" />
     </Style>
 
     <Style Selector="TextBlock.section">

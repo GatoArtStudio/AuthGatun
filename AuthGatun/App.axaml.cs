@@ -59,6 +59,7 @@ public partial class App : Application
         }
         
         services.AddSingleton<ScreenCaptureService>();
+        services.AddSingleton<ThemeService>();
         services.AddSingleton<ILocalizer, Localizer>();
 
         // View models, They implement ViewModelBase
@@ -94,6 +95,7 @@ public partial class App : Application
             // Line below is needed to remove Avalonia data validation.
             // Without this line you will get duplicate validations from both Avalonia and CT
             ServiceProvider.GetRequiredService<ILocalizer>();
+            ServiceProvider.GetRequiredService<ThemeService>().Apply();
             var viewModelFactory = ServiceProvider.GetRequiredService<IViewModelFactory>();
             var windowFactory = ServiceProvider.GetRequiredService<IWindowFactory>();
             var loginViewModel = viewModelFactory.Create<LoginWindowViewModel>();
